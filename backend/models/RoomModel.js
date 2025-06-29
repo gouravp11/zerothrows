@@ -11,8 +11,8 @@ const roomSchema = new mongoose.Schema({
   },
   description: String,
   requirements: {
-    rank: String,
-    peakRank: String
+    minRank: String,
+    minPeakRank: String
   },
   createdBy: {
     gameName: String,
