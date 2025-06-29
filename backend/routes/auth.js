@@ -14,7 +14,7 @@ router.get("/mock-login/:user", (req, res) => {
     alt: {
       riotId: { gameName: "OtherPlayer", tagLine: "5678" },
       puuid: "mock-puuid-5678",
-      region: "EUW",
+      region: "EMEA",
       stats: { level: 60, rank: "Platinum I" },
       isPublic: true,
     },

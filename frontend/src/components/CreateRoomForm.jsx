@@ -7,24 +7,53 @@ const CreateRoomForm = ({ onCreate }) => {
     const [minPeakRank, setMinPeakRank] = useState("");
     const [description, setDescription] = useState("");
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+    const handleSubmit = async (e) => {
+  e.preventDefault();
 
-        const newRoom = {
-            roomName,
-            region,
-            requirements: {
-                minRank: minRank || null,
-                minPeakRank: minPeakRank || null,
-                description: description || null
-            },
-            createdAt: new Date(),
-        };
+  const currentUser = JSON.parse(localStorage.getItem("user"));
 
-        onCreate(newRoom); // Send data to parent or API
-        setRoomName("");
-        setMinRank("");
-    };
+  const newRoom = {
+    roomName,
+    region,
+    description: description || null,
+    requirements: {
+      minRank: minRank || null,
+      minPeakRank: minPeakRank || null,
+    },
+    createdBy: {
+      gameName: currentUser.riotId.gameName,
+      tagLine: currentUser.riotId.tagLine,
+      puuid: currentUser.puuid,
+    },
+  };
+
+  try {
+    const res = await fetch("http://localhost:8080/api/rooms/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newRoom),
+    });
+
+    if (res.ok) {
+      const savedRoom = await res.json();
+      console.log("Room created:", savedRoom);
+
+      onCreate(savedRoom); // Notify parent (if needed)
+
+      // Clear form fields
+      setRoomName("");
+      setRegion("NA");
+      setMinRank("");
+      setMinPeakRank("");
+      setDescription("");
+    } else {
+      console.error("Failed to create room");
+    }
+  } catch (error) {
+    console.error("Error creating room:", error);
+  }
+};
+
 
     return (
         <form
