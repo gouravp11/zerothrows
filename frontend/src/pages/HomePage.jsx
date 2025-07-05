@@ -26,30 +26,63 @@ const HomePage = () => {
   };
 
   const handleDeleteRoom = async (roomId) => {
-    try {
-      await fetch(`http://localhost:8080/api/rooms/delete/${roomId}`, {
-        method: "DELETE",
-      });
+  try {
+    const currentUser = JSON.parse(localStorage.getItem("user"));
+
+    const res = await fetch(`http://localhost:8080/api/rooms/delete/${roomId}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        createdBy: {
+          gameName: currentUser.riotId.gameName,
+          tagLine: currentUser.riotId.tagLine,
+          puuid: currentUser.puuid,
+        },
+      }),
+    });
+
+    if (res.ok) {
       console.log("Room deleted:", roomId);
       fetchRooms(); // refresh list after deleting
-    } catch (error) {
-      console.error("Failed to delete room:", error);
+    } else {
+      const errorData = await res.json();
+      alert(errorData.error || "Failed to delete room");
     }
-  };
+  } catch (error) {
+    console.error("Failed to delete room:", error);
+  }
+};
 
   const handleJoinRoom = (roomId) => {
     console.log(`Joining room: ${roomId}`);
     // Add real join API call here later
   };
   const fetchRooms = async () => {
-    try {
-      const res = await fetch("http://localhost:8080/api/rooms");
+  try {
+    const currentUser = JSON.parse(localStorage.getItem("user"));
+
+    if (!currentUser) {
+      console.error("User not logged in");
+      return;
+    }
+
+    const res = await fetch("http://localhost:8080/api/rooms", {
+      headers: {
+        "X-User-Puuid": currentUser.puuid, // send puuid as proof of login
+      },
+    });
+
+    if (res.ok) {
       const data = await res.json();
       setRooms(data);
-    } catch (error) {
-      console.error("Failed to fetch rooms:", error);
+    } else {
+      const errorData = await res.json();
+      console.error(errorData.error || "Failed to fetch rooms");
     }
-  };
+  } catch (error) {
+    console.error("Failed to fetch rooms:", error);
+  }
+};
 
   useEffect(() => {
     fetchRooms();
