@@ -18,6 +18,7 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
   },
 });
+app.set("io", io);
 
 const corsOptions = {
   origin: ["http://localhost:5173"],

@@ -65,6 +65,9 @@ router.post("/create", async (req, res) => {
     const room = new Room(roomData);
     await room.save();
 
+    const io = req.app.get("io");
+    io.emit("roomUpdated");
+
     res.status(201).json(room);
   } catch (error) {
     console.error("Error creating room:", error);
@@ -94,6 +97,9 @@ router.delete("/delete/:roomId", async (req, res) => {
     }
 
     await room.deleteOne();
+
+    const io = req.app.get("io");
+    io.emit("roomUpdated");
 
     res.json({ message: "Room deleted successfully", room });
   } catch (error) {
@@ -133,6 +139,9 @@ router.post("/join/:roomId", async (req, res) => {
 
     room.participants.push(participant);
     await room.save();
+
+    const io = req.app.get("io");
+    io.emit("roomUpdated");
 
     res.json(room);
   } catch (error) {

@@ -5,6 +5,7 @@ import Modal from "../components/Modal";
 import CreateRoomForm from "../components/CreateRoomForm";
 import RoomCard from "../components/RoomCard";
 import ChatInterface from "../components/ChatInterface";
+import socket from "../utils/socket";
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -136,6 +137,13 @@ const HomePage = () => {
 
   useEffect(() => {
     fetchRooms();
+    socket.on("roomUpdated", () => {
+      fetchRooms(); // re-fetch rooms on real-time updates
+    });
+
+    return () => {
+      socket.off("roomUpdated"); // clean up listener on unmount
+    };
   }, []);
 
   const myRooms = rooms.filter((room) => room.createdBy?.puuid === user.puuid);
