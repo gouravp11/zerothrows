@@ -42,6 +42,17 @@ router.post("/create", async (req, res) => {
       });
     }
 
+    // Check if user is already a participant in any room
+    const existingParticipantRoom = await Room.findOne({
+      "participants.puuid": createdBy.puuid,
+    });
+
+    if (existingParticipantRoom) {
+      return res.status(400).json({
+        error: "You are already in a room. Leave your existing room before creating a new one.",
+      });
+    }
+
     // Add the creator to the participants list with full details
     roomData.participants = [
       {
