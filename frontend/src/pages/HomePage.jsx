@@ -88,9 +88,9 @@ const HomePage = () => {
 };
 
 const currentUserPuuid = JSON.parse(localStorage.getItem("user")).puuid;
-const joinedRegions = rooms
-  .filter(room => room.participants?.some(p => p.puuid === currentUserPuuid))
-  .map(room => room.region);
+const isInAnyRoom = rooms.some(room =>
+  room.participants?.some(p => p.puuid === currentUserPuuid)
+);
 
 
   const fetchRooms = async () => {
@@ -199,7 +199,7 @@ const joinedRegions = rooms
                 room={room}
                 isOwnRoom={false}
                 onJoin={handleJoinRoom}
-                joinedRegions={joinedRegions}
+                isInAnyRoom={isInAnyRoom}
                 currentUserPuuid={currentUserPuuid}
               />
             ))

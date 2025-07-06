@@ -1,5 +1,4 @@
-const RoomCard = ({ room, isOwnRoom, onDelete, onJoin, joinedRegions, currentUserPuuid }) => {
-  const hasJoinedInThisRegion = joinedRegions?.includes(room.region);
+const RoomCard = ({ room, isOwnRoom, onDelete, onJoin, onGoChat, currentUserPuuid, isInAnyRoom }) => {
   const isParticipant = room.participants?.some(p => p.puuid === currentUserPuuid);
 
   return (
@@ -21,12 +20,20 @@ const RoomCard = ({ room, isOwnRoom, onDelete, onJoin, joinedRegions, currentUse
       </p>
 
       {isOwnRoom ? (
-        <button
-          onClick={() => onDelete(room._id)}
-          className="mt-2 bg-red-600 text-white px-4 py-1 rounded hover:bg-red-700"
-        >
-          Delete Room
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => onDelete(room._id)}
+            className="mt-2 bg-red-600 text-white px-4 py-1 rounded hover:bg-red-700"
+          >
+            Delete Room
+          </button>
+          <button
+            onClick={() => onGoChat(room._id)}
+            className="mt-2 bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
+          >
+            Go to Chat
+          </button>
+        </div>
       ) : isParticipant ? (
         <button
           onClick={() => onGoChat(room._id)}
@@ -41,7 +48,7 @@ const RoomCard = ({ room, isOwnRoom, onDelete, onJoin, joinedRegions, currentUse
         >
           Room Full
         </button>
-      ) : hasJoinedInThisRegion ? (
+      ) : isInAnyRoom ? (
         <button
           disabled
           className="mt-2 bg-gray-400 text-white px-4 py-1 rounded cursor-not-allowed"
