@@ -38,6 +38,20 @@ router.get("/mock-login/:user", (req, res) => {
       stats: { level: 40, rank: "Silver I" },
       isPublic: true,
     },
+    charlie: {
+      riotId: { gameName: "CharlieChor", tagLine: "3333" },
+      puuid: "mock-puuid-3333",
+      region: "CN",
+      stats: { level: 40, rank: "Silver III" },
+      isPublic: true,
+    },
+    barley: {
+      riotId: { gameName: "Barley", tagLine: "4444" },
+      puuid: "mock-puuid-4444",
+      region: "APAC",
+      stats: { level: 90, rank: "Gold III" },
+      isPublic: true,
+    },
   };
 
   const userKey = req.params.user;

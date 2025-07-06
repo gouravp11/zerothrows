@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 const LoginPage = () => {
   const navigate = useNavigate();
 
-  const users = ["demo", "alt", "bot", "alpha", "bravo"];
+  const users = ["demo", "alt", "bot", "alpha", "bravo", "charlie", "barley"];
   const [selected, setSelected] = useState("demo");
 
   const handleLogin = async () => {
