@@ -4,7 +4,6 @@ import HomePage from "./pages/HomePage";
 
 const App = () => {
   const isLoggedIn = !!localStorage.getItem("user");
-  console.log(isLoggedIn);
   return (
       <Routes>
         <Route
