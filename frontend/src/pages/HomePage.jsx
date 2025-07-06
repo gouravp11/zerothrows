@@ -190,8 +190,11 @@ const HomePage = () => {
               <RoomCard
                 key={room._id}
                 room={room}
-                isOwnRoom={true}
-                onDelete={handleDeleteRoom}
+                isOwnRoom={false}
+                onJoin={handleJoinRoom}
+                onGoChat={handleGoChat}
+                isInAnyRoom={isInAnyRoom}
+                currentUserPuuid={currentUserPuuid}
               />
             ))
           ) : (
