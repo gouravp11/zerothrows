@@ -4,12 +4,15 @@ import ProfileIcon from "../components/ProfileIcon";
 import Modal from "../components/Modal";
 import CreateRoomForm from "../components/CreateRoomForm";
 import RoomCard from "../components/RoomCard";
+import ChatInterface from "../components/ChatInterface";
 
 const HomePage = () => {
   const navigate = useNavigate();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [rooms, setRooms] = useState([]);
   const [regionFilter, setRegionFilter] = useState("ALL");
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [activeRoom, setActiveRoom] = useState(null);
 
   const user = JSON.parse(localStorage.getItem("user"));
 
@@ -26,99 +29,110 @@ const HomePage = () => {
   };
 
   const handleDeleteRoom = async (roomId) => {
-  try {
-    const currentUser = JSON.parse(localStorage.getItem("user"));
+    try {
+      const currentUser = JSON.parse(localStorage.getItem("user"));
 
-    const res = await fetch(`http://localhost:8080/api/rooms/delete/${roomId}`, {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        createdBy: {
-          gameName: currentUser.riotId.gameName,
-          tagLine: currentUser.riotId.tagLine,
-          puuid: currentUser.puuid,
-        },
-      }),
-    });
+      const res = await fetch(
+        `http://localhost:8080/api/rooms/delete/${roomId}`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            createdBy: {
+              gameName: currentUser.riotId.gameName,
+              tagLine: currentUser.riotId.tagLine,
+              puuid: currentUser.puuid,
+            },
+          }),
+        }
+      );
 
-    if (res.ok) {
-      console.log("Room deleted:", roomId);
-      fetchRooms(); // refresh list after deleting
-    } else {
-      const errorData = await res.json();
-      alert(errorData.error || "Failed to delete room");
+      if (res.ok) {
+        console.log("Room deleted:", roomId);
+        fetchRooms(); // refresh list after deleting
+      } else {
+        const errorData = await res.json();
+        alert(errorData.error || "Failed to delete room");
+      }
+    } catch (error) {
+      console.error("Failed to delete room:", error);
     }
-  } catch (error) {
-    console.error("Failed to delete room:", error);
-  }
-};
+  };
 
   const handleJoinRoom = async (roomId) => {
-  try {
-    const currentUser = JSON.parse(localStorage.getItem("user"));
+    try {
+      const currentUser = JSON.parse(localStorage.getItem("user"));
 
-    if (!currentUser) {
-      alert("You must be logged in to join a room.");
-      return;
+      if (!currentUser) {
+        alert("You must be logged in to join a room.");
+        return;
+      }
+
+      const res = await fetch(
+        `http://localhost:8080/api/rooms/join/${roomId}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            participant: {
+              gameName: currentUser.riotId.gameName,
+              tagLine: currentUser.riotId.tagLine,
+              puuid: currentUser.puuid,
+            },
+          }),
+        }
+      );
+
+      if (res.ok) {
+        const updatedRoom = await res.json();
+        console.log("Joined room successfully:", updatedRoom);
+        fetchRooms(); // refresh list after joining
+      } else {
+        const errorData = await res.json();
+        alert(errorData.error || "Failed to join room");
+      }
+    } catch (error) {
+      console.error("Error joining room:", error);
     }
+  };
 
-    const res = await fetch(`http://localhost:8080/api/rooms/join/${roomId}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        participant: {
-          gameName: currentUser.riotId.gameName,
-          tagLine: currentUser.riotId.tagLine,
-          puuid: currentUser.puuid,
-        },
-      }),
-    });
+  const handleGoChat = (roomId) => {
+    const selectedRoom = rooms.find((r) => r._id === roomId);
+    setActiveRoom(selectedRoom);
+    setIsChatOpen(true);
+  };
 
-    if (res.ok) {
-      const updatedRoom = await res.json();
-      console.log("Joined room successfully:", updatedRoom);
-      fetchRooms(); // refresh list after joining
-    } else {
-      const errorData = await res.json();
-      alert(errorData.error || "Failed to join room");
-    }
-  } catch (error) {
-    console.error("Error joining room:", error);
-  }
-};
-
-const currentUserPuuid = JSON.parse(localStorage.getItem("user")).puuid;
-const isInAnyRoom = rooms.some(room =>
-  room.participants?.some(p => p.puuid === currentUserPuuid)
-);
-
+  const currentUserPuuid = JSON.parse(localStorage.getItem("user")).puuid;
+  const isInAnyRoom = rooms.some((room) =>
+    room.participants?.some((p) => p.puuid === currentUserPuuid)
+  );
 
   const fetchRooms = async () => {
-  try {
-    const currentUser = JSON.parse(localStorage.getItem("user"));
+    try {
+      const currentUser = JSON.parse(localStorage.getItem("user"));
 
-    if (!currentUser) {
-      console.error("User not logged in");
-      return;
+      if (!currentUser) {
+        console.error("User not logged in");
+        return;
+      }
+
+      const res = await fetch("http://localhost:8080/api/rooms", {
+        headers: {
+          "X-User-Puuid": currentUser.puuid, // send puuid as proof of login
+        },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setRooms(data);
+      } else {
+        const errorData = await res.json();
+        console.error(errorData.error || "Failed to fetch rooms");
+      }
+    } catch (error) {
+      console.error("Failed to fetch rooms:", error);
     }
-
-    const res = await fetch("http://localhost:8080/api/rooms", {
-      headers: {
-        "X-User-Puuid": currentUser.puuid, // send puuid as proof of login
-      },
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      setRooms(data);
-    } else {
-      const errorData = await res.json();
-      console.error(errorData.error || "Failed to fetch rooms");
-    }
-  } catch (error) {
-    console.error("Failed to fetch rooms:", error);
-  }
-};
+  };
 
   useEffect(() => {
     fetchRooms();
@@ -199,6 +213,7 @@ const isInAnyRoom = rooms.some(room =>
                 room={room}
                 isOwnRoom={false}
                 onJoin={handleJoinRoom}
+                onGoChat={handleGoChat}
                 isInAnyRoom={isInAnyRoom}
                 currentUserPuuid={currentUserPuuid}
               />
@@ -207,6 +222,11 @@ const isInAnyRoom = rooms.some(room =>
             <p className="text-gray-600">No rooms found in this region.</p>
           )}
         </section>
+        {isChatOpen && activeRoom && (
+          <Modal onClose={() => setIsChatOpen(false)}>
+            <ChatInterface room={activeRoom} />
+          </Modal>
+        )}
       </div>
     </>
   );
