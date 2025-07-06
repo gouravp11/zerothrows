@@ -53,10 +53,46 @@ const HomePage = () => {
   }
 };
 
-  const handleJoinRoom = (roomId) => {
-    console.log(`Joining room: ${roomId}`);
-    // Add real join API call here later
-  };
+  const handleJoinRoom = async (roomId) => {
+  try {
+    const currentUser = JSON.parse(localStorage.getItem("user"));
+
+    if (!currentUser) {
+      alert("You must be logged in to join a room.");
+      return;
+    }
+
+    const res = await fetch(`http://localhost:8080/api/rooms/join/${roomId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        participant: {
+          gameName: currentUser.riotId.gameName,
+          tagLine: currentUser.riotId.tagLine,
+          puuid: currentUser.puuid,
+        },
+      }),
+    });
+
+    if (res.ok) {
+      const updatedRoom = await res.json();
+      console.log("Joined room successfully:", updatedRoom);
+      fetchRooms(); // refresh list after joining
+    } else {
+      const errorData = await res.json();
+      alert(errorData.error || "Failed to join room");
+    }
+  } catch (error) {
+    console.error("Error joining room:", error);
+  }
+};
+
+const currentUserPuuid = JSON.parse(localStorage.getItem("user")).puuid;
+const joinedRegions = rooms
+  .filter(room => room.participants?.some(p => p.puuid === currentUserPuuid))
+  .map(room => room.region);
+
+
   const fetchRooms = async () => {
   try {
     const currentUser = JSON.parse(localStorage.getItem("user"));
@@ -163,6 +199,8 @@ const HomePage = () => {
                 room={room}
                 isOwnRoom={false}
                 onJoin={handleJoinRoom}
+                joinedRegions={joinedRegions}
+                currentUserPuuid={currentUserPuuid}
               />
             ))
           ) : (

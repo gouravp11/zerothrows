@@ -31,7 +31,6 @@ router.post("/create", async (req, res) => {
       return res.status(401).json({ error: "Unauthorized: User info missing" });
     }
 
-
     // Check if this user already has a room in the same region
     const existingRoom = await Room.findOne({
       "createdBy.puuid": createdBy.puuid,
@@ -43,6 +42,15 @@ router.post("/create", async (req, res) => {
         error: "You already have a room in this region. You cannot create multiple rooms in the same region.",
       });
     }
+
+    // Add the creator to the participants list with full details
+    roomData.participants = [
+      {
+        gameName: createdBy.gameName,
+        tagLine: createdBy.tagLine,
+        puuid: createdBy.puuid,
+      },
+    ];
 
     const room = new Room(roomData);
     await room.save();
@@ -83,6 +91,46 @@ router.delete("/delete/:roomId", async (req, res) => {
     res.status(500).json({ error: "Failed to delete room" });
   }
 });
+
+router.post("/join/:roomId", async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const { participant } = req.body;
+
+    if (!participant || !participant.puuid) {
+      return res.status(400).json({ error: "Participant info missing" });
+    }
+
+    const room = await Room.findById(roomId);
+
+    if (!room) {
+      return res.status(404).json({ error: "Room not found" });
+    }
+
+    // Check if user is already a participant
+    const alreadyParticipant = room.participants.some(
+      (p) => p.puuid === participant.puuid
+    );
+
+    if (alreadyParticipant) {
+      return res.status(400).json({ error: "You have already joined this room" });
+    }
+
+    // Check if max participants reached
+    if (room.participants.length >= 5) {
+      return res.status(400).json({ error: "Room is full. Max 5 participants allowed" });
+    }
+
+    room.participants.push(participant);
+    await room.save();
+
+    res.json(room);
+  } catch (error) {
+    console.error("Error joining room:", error);
+    res.status(500).json({ error: "Failed to join room" });
+  }
+});
+
 
 
 module.exports = router;
