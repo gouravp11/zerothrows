@@ -24,22 +24,21 @@ router.get("/", async (req, res) => {
 router.post("/create", async (req, res) => {
   try {
     const roomData = req.body;
-    const { createdBy, region } = roomData;
+    const { createdBy } = roomData;
 
     // Check if user logged in or not
     if (!createdBy || !createdBy.puuid) {
       return res.status(401).json({ error: "Unauthorized: User info missing" });
     }
 
-    // Check if this user already has a room in the same region
+    // Check if this user already has any room
     const existingRoom = await Room.findOne({
       "createdBy.puuid": createdBy.puuid,
-      region: region,
     });
 
     if (existingRoom) {
       return res.status(400).json({
-        error: "You already have a room in this region. You cannot create multiple rooms in the same region.",
+        error: "You already have a room. You cannot create multiple rooms at the same time.",
       });
     }
 
