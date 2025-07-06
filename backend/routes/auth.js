@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 
-
 router.get("/mock-login/:user", (req, res) => {
   const users = {
     demo: {
@@ -23,6 +22,20 @@ router.get("/mock-login/:user", (req, res) => {
       puuid: "mock-puuid-9999",
       region: "APAC",
       stats: { level: 45, rank: "Silver IV" },
+      isPublic: true,
+    },
+    alpha: {
+      riotId: { gameName: "AlphaStriker", tagLine: "1111" },
+      puuid: "mock-puuid-1111",
+      region: "NA",
+      stats: { level: 55, rank: "Diamond III" },
+      isPublic: true,
+    },
+    bravo: {
+      riotId: { gameName: "BravoShot", tagLine: "2222" },
+      puuid: "mock-puuid-2222",
+      region: "EMEA",
+      stats: { level: 40, rank: "Silver I" },
       isPublic: true,
     },
   };
