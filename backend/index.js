@@ -34,6 +34,7 @@ app.use("/api/rooms", roomRoutes);
 // Minimal Socket.io connection
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
+  io.emit("roomUpdated");
 
   socket.on("joinRoom", (roomId) => {
     socket.join(roomId);
@@ -41,7 +42,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("leaveRoom", (roomId) => {
-    socket.join(roomId);
+    socket.leave(roomId);
     console.log(`User ${socket.id} left chat room ${roomId}`);
   });
 
