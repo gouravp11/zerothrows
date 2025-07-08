@@ -1,5 +1,16 @@
-const RoomCard = ({ room, isOwnRoom, onDelete, onJoin, onGoChat, currentUserPuuid, isInAnyRoom }) => {
-  const isParticipant = room.participants?.some(p => p.puuid === currentUserPuuid);
+const RoomCard = ({
+  room,
+  isOwnRoom,
+  onDelete,
+  onJoin,
+  onLeave,
+  onGoChat,
+  currentUserPuuid,
+  isInAnyRoom,
+}) => {
+  const isParticipant = room.participants?.some(
+    (p) => p.puuid === currentUserPuuid
+  );
 
   return (
     <div className="bg-white shadow rounded p-4 mb-4">
@@ -35,12 +46,20 @@ const RoomCard = ({ room, isOwnRoom, onDelete, onJoin, onGoChat, currentUserPuui
           </button>
         </div>
       ) : isParticipant ? (
-        <button
-          onClick={() => onGoChat(room._id)}
-          className="mt-2 bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
-        >
-          Go to Chat
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => onGoChat(room._id)}
+            className="mt-2 bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
+          >
+            Go to Chat
+          </button>
+          <button
+            onClick={() => onLeave(room._id)}
+            className="mt-2 bg-red-600 text-white px-4 py-1 rounded hover:bg-red-700"
+          >
+            Leave Room
+          </button>
+        </div>
       ) : room.participants?.length >= 5 ? (
         <button
           disabled

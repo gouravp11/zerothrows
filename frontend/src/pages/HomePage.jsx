@@ -27,6 +27,12 @@ const HomePage = () => {
     console.log("Room created:", roomData);
     setShowCreateForm(false);
     fetchRooms(); // refresh rooms after creating a new one
+    socket.emit("joinRoom", roomData._id);
+    socket.emit("chatMessage", {
+      roomId,
+      sender: "System",
+      message: `${currentUser.riotId.gameName} joined the room`,
+    });
   };
 
   const handleDeleteRoom = async (roomId) => {
@@ -88,6 +94,12 @@ const HomePage = () => {
         const updatedRoom = await res.json();
         console.log("Joined room successfully:", updatedRoom);
         fetchRooms(); // refresh list after joining
+        socket.emit("joinRoom", roomId);
+        socket.emit("chatMessage", {
+          roomId,
+          sender: "System",
+          message: `${currentUser.riotId.gameName} joined the room`,
+        });
       } else {
         const errorData = await res.json();
         alert(errorData.error || "Failed to join room");
@@ -132,6 +144,39 @@ const HomePage = () => {
       }
     } catch (error) {
       console.error("Failed to fetch rooms:", error);
+    }
+  };
+
+  const handleLeaveRoom = async (roomId) => {
+    const currentUser = JSON.parse(localStorage.getItem("user"));
+
+    try {
+      const res = await fetch(
+        `http://localhost:8080/api/rooms/leave/${roomId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ puuid: currentUser.puuid }),
+        }
+      );
+
+      if (res.ok) {
+        setIsChatOpen(false); // Close chat modal
+        fetchRooms(); // Refresh room list
+        socket.emit("chatMessage", {
+          roomId,
+          sender: "System",
+          message: `${currentUser.riotId.gameName} left the room`,
+        });
+        socket.emit("leaveRoom", roomId);
+      } else {
+        const err = await res.json();
+        alert(err.error || "Failed to leave room");
+      }
+    } catch (err) {
+      console.error("Error leaving room:", err);
     }
   };
 
@@ -190,7 +235,8 @@ const HomePage = () => {
               <RoomCard
                 key={room._id}
                 room={room}
-                isOwnRoom={false}
+                isOwnRoom={true}
+                onDelete={handleDeleteRoom}
                 onJoin={handleJoinRoom}
                 onGoChat={handleGoChat}
                 isInAnyRoom={isInAnyRoom}
@@ -224,6 +270,7 @@ const HomePage = () => {
                 room={room}
                 isOwnRoom={false}
                 onJoin={handleJoinRoom}
+                onLeave={handleLeaveRoom}
                 onGoChat={handleGoChat}
                 isInAnyRoom={isInAnyRoom}
                 currentUserPuuid={currentUserPuuid}
@@ -235,7 +282,7 @@ const HomePage = () => {
         </section>
         {isChatOpen && activeRoom && (
           <Modal onClose={() => setIsChatOpen(false)}>
-            <ChatInterface room={activeRoom} />
+            <ChatInterface room={activeRoom} onLeaveRoom={handleLeaveRoom} />
           </Modal>
         )}
       </div>

@@ -35,6 +35,23 @@ app.use("/api/rooms", roomRoutes);
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 
+  socket.on("joinRoom", (roomId) => {
+    socket.join(roomId);
+    console.log(`User ${socket.id} joined chat room ${roomId}`);
+  });
+
+  socket.on("leaveRoom", (roomId) => {
+    socket.join(roomId);
+    console.log(`User ${socket.id} left chat room ${roomId}`);
+  });
+
+  socket.on("chatMessage", ({ roomId, sender, message }) => {
+    io.to(roomId).emit("chatMessage", {
+      sender,
+      message,
+      time: new Date().toISOString(),
+    });
+  });
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });

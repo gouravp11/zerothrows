@@ -1,30 +1,110 @@
-const ChatInterface = ({ room }) => (
-  <div className="flex flex-col w-[600px] max-w-full h-[600px] max-h-[90vh]">
-    <h2 className="text-xl font-bold mb-4">
-      Chat - {room.roomName} ({room.region})
-    </h2>
+import { useEffect, useState, useRef } from "react";
+import socket from "../utils/socket";
 
-    <div className="flex-1 overflow-y-auto border rounded p-2 mb-4 bg-gray-50">
-      {/* Example static messages; replace with real-time messages */}
-      <div className="mb-2 text-sm text-gray-800">
-        <span className="font-semibold">System:</span> Welcome to the chat!
+const ChatInterface = ({ room, onLeaveRoom }) => {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const messagesEndRef = useRef(null);
+
+  const currentUser = JSON.parse(localStorage.getItem("user"));
+  const senderName = currentUser?.riotId?.gameName || "Unknown";
+  const isOwner = currentUser?.puuid === room.createdBy?.puuid;
+
+  useEffect(() => {
+
+    const handleMessage = (msg) => {
+      setMessages((prev) => [...prev, msg]);
+    };
+
+    socket.on("chatMessage", handleMessage);
+
+    return () => {
+      socket.off("chatMessage", handleMessage);
+    };
+  }, [room._id]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const sendMessage = () => {
+    if (!input.trim()) return;
+
+    socket.emit("chatMessage", {
+      roomId: room._id,
+      sender: senderName,
+      message: input,
+    });
+
+    setInput("");
+  };
+
+  return (
+    <div className="flex flex-col w-[600px] max-w-full h-[600px] max-h-[90vh] p-6">
+      <div className="flex items-center justify-between mb-2">
+        {!isOwner && (
+          <button
+            onClick={() => {
+              onLeaveRoom(room._id);
+            }}
+            className="text-sm font-semibold text-white px-3 py-2 bg-red-500 rounded"
+          >
+            Leave Room
+          </button>
+        )}
       </div>
-      <div className="mb-2 text-sm text-gray-800">
-        <span className="font-semibold">{room.createdBy?.gameName}:</span> Let’s get ready!
+
+      <h2 className="text-xl font-bold mb-2">
+        Chat - {room.roomName} ({room.region})
+      </h2>
+
+      <div className="flex-1 overflow-y-auto border rounded p-2 mb-4 bg-gray-50">
+        {messages.length === 0 && (
+          <>
+            <div className="mb-2 text-sm text-gray-800">
+              <span className="font-semibold">System:</span> Welcome to the
+              chat!
+            </div>
+            <div className="mb-2 text-sm text-gray-800">
+              <span className="font-semibold">{room.createdBy?.gameName}:</span>{" "}
+              Let’s get ready!
+            </div>
+          </>
+        )}
+        {messages.map((msg, idx) => (
+          <div
+            key={idx}
+            className={`mb-2 text-sm ${
+              msg.sender === "System" ? "text-gray-500 italic" : "text-gray-800"
+            }`}
+          >
+            {msg.sender !== "System" && (
+              <span className="font-semibold">{msg.sender}:</span>
+            )}{" "}
+            {msg.message}
+          </div>
+        ))}
+        <div ref={messagesEndRef} />
+      </div>
+
+      <div className="flex">
+        <input
+          type="text"
+          placeholder="Type your message..."
+          className="flex-1 border p-2 rounded-l focus:outline-none"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+        />
+        <button
+          onClick={sendMessage}
+          className="bg-blue-600 text-white px-4 rounded-r hover:bg-blue-700"
+        >
+          Send
+        </button>
       </div>
     </div>
-
-    <div className="flex">
-      <input
-        type="text"
-        placeholder="Type your message..."
-        className="flex-1 border p-2 rounded-l focus:outline-none"
-      />
-      <button className="bg-blue-600 text-white px-4 rounded-r hover:bg-blue-700">
-        Send
-      </button>
-    </div>
-  </div>
-);
+  );
+};
 
 export default ChatInterface;

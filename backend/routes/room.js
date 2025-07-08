@@ -150,6 +150,41 @@ router.post("/join/:roomId", async (req, res) => {
   }
 });
 
+router.post("/leave/:roomId", async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const { puuid } = req.body;
+
+    if (!puuid) {
+      return res.status(400).json({ error: "User PUUID is required to leave room" });
+    }
+
+    const room = await Room.findById(roomId);
+    if (!room) {
+      return res.status(404).json({ error: "Room not found" });
+    }
+
+    // Check if user is in the room
+    const wasParticipant = room.participants.some((p) => p.puuid === puuid);
+    if (!wasParticipant) {
+      return res.status(400).json({ error: "You are not in this room" });
+    }
+
+    // Remove the participant
+    room.participants = room.participants.filter((p) => p.puuid !== puuid);
+    await room.save();
+
+    const io = req.app.get("io");
+    io.emit("roomUpdated");
+
+    res.json({ message: "Successfully left the room", room });
+  } catch (error) {
+    console.error("Error leaving room:", error);
+    res.status(500).json({ error: "Failed to leave room" });
+  }
+});
+
+
 
 
 module.exports = router;
