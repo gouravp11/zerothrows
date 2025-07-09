@@ -24,12 +24,13 @@ const HomePage = () => {
   };
 
   const handleCreateRoom = (roomData) => {
+    const currentUser = JSON.parse(localStorage.getItem("user"));
     console.log("Room created:", roomData);
     setShowCreateForm(false);
     fetchRooms(); // refresh rooms after creating a new one
     socket.emit("joinRoom", roomData._id);
     socket.emit("chatMessage", {
-      roomId,
+      roomId: roomData._id,
       sender: "System",
       message: `${currentUser.riotId.gameName} joined the room`,
     });
