@@ -6,6 +6,7 @@ const dotenv = require("dotenv");
 const connectDB = require("./db");
 const authRoutes = require("./routes/auth");
 const roomRoutes = require("./routes/room");
+const Room = require("./models/RoomModel");
 
 dotenv.config();
 
@@ -46,12 +47,22 @@ io.on("connection", (socket) => {
     console.log(`User ${socket.id} left chat room ${roomId}`);
   });
 
-  socket.on("chatMessage", ({ roomId, sender, message }) => {
-    io.to(roomId).emit("chatMessage", {
+  socket.on("chatMessage", async ({ roomId, sender, message }) => {
+    const chat = {
       sender,
       message,
       time: new Date().toISOString(),
-    });
+    };
+
+    io.to(roomId).emit("chatMessage", chat);
+
+    try {
+      await Room.findByIdAndUpdate(roomId, {
+        $push: { messages: chat },
+      });
+    } catch (err) {
+      console.error("Failed to store chat message:", err);
+    }
   });
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);

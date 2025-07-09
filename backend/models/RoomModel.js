@@ -12,7 +12,7 @@ const roomSchema = new mongoose.Schema({
   description: String,
   requirements: {
     minRank: String,
-    minPeakRank: String
+    minPeakRank: String,
   },
   createdBy: {
     gameName: String,
@@ -24,6 +24,16 @@ const roomSchema = new mongoose.Schema({
       gameName: String,
       tagLine: String,
       puuid: String,
+    },
+  ],
+  messages: [
+    {
+      sender: String,
+      message: String,
+      time: {
+        type: Date,
+        default: Date.now,
+      },
     },
   ],
   createdAt: {

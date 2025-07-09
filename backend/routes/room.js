@@ -19,6 +19,18 @@ router.get("/", async (req, res) => {
   }
 });
 
+// Fetch messages of a particular room (with roomId)
+router.get("/:roomId/messages", async (req, res) => {
+  try {
+    const room = await Room.findById(req.params.roomId);
+    if (!room) return res.status(404).json({ error: "Room not found" });
+
+    res.json({ success: true, messages: room.messages || [] });
+  } catch (err) {
+    console.error("Error fetching messages:", err);
+    res.status(500).json({ error: "Failed to fetch messages" });
+  }
+});
 
 // POST /api/rooms/create -> create a room
 router.post("/create", async (req, res) => {

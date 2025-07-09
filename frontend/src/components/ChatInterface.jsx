@@ -11,17 +11,32 @@ const ChatInterface = ({ room, onLeaveRoom }) => {
   const isOwner = currentUser?.puuid === room.createdBy?.puuid;
 
   useEffect(() => {
+  // Fetch existing messages from backend
+  const fetchMessages = async () => {
+    try {
+      const res = await fetch(`http://localhost:8080/api/rooms/${room._id}/messages`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.messages)) {
+        setMessages(data.messages);
+      }
+    } catch (err) {
+      console.error("Failed to load messages:", err);
+    }
+  };
 
-    const handleMessage = (msg) => {
-      setMessages((prev) => [...prev, msg]);
-    };
+  fetchMessages(); // load old messages
+  // Set up real-time listener
+  const handleMessage = (msg) => {
+    setMessages((prev) => [...prev, msg]);
+  };
 
-    socket.on("chatMessage", handleMessage);
+  socket.on("chatMessage", handleMessage);
 
-    return () => {
-      socket.off("chatMessage", handleMessage);
-    };
-  }, [room._id]);
+  return () => {
+    socket.off("chatMessage", handleMessage);
+  };
+}, [room._id]);
+
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
