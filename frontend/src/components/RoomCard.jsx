@@ -1,3 +1,6 @@
+import { useEffect } from "react";
+import socket from "../utils/socket";
+
 const RoomCard = ({
   room,
   isOwnRoom,
@@ -5,12 +8,28 @@ const RoomCard = ({
   onJoin,
   onLeave,
   onGoChat,
+  onForceClose,
   currentUserPuuid,
   isInAnyRoom,
 }) => {
   const isParticipant = room.participants?.some(
     (p) => p.puuid === currentUserPuuid
   );
+
+  useEffect(()=>{
+
+  const handleLeaveRoomAll = (roomId) => {
+    if (roomId === room._id) {
+      socket.emit("leaveRoom", roomId);
+      if(!isOwnRoom){
+        alert("Room has been deleted by the owner");
+        onForceClose?.(); // just close the modal
+      }
+    }
+  };
+  socket.on("leaveRoomAll", handleLeaveRoomAll);
+  
+  }, []);
 
   return (
     <div className="bg-white shadow rounded p-4 mb-4">

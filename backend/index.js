@@ -42,6 +42,13 @@ io.on("connection", (socket) => {
     console.log(`User ${socket.id} joined chat room ${roomId}`);
   });
 
+  socket.on("requestLeaveRoom", (roomId) => {
+    console.log(`User ${socket.id} requested leave for room ${roomId}`);
+
+    // Now notify all sockets (including the one who emitted)
+    io.to(roomId).emit("leaveRoomAll", roomId);
+  });
+
   socket.on("leaveRoom", (roomId) => {
     socket.leave(roomId);
     console.log(`User ${socket.id} left chat room ${roomId}`);

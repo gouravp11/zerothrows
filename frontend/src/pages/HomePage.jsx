@@ -39,6 +39,7 @@ const HomePage = () => {
   const handleDeleteRoom = async (roomId) => {
     try {
       const currentUser = JSON.parse(localStorage.getItem("user"));
+      socket.emit("requestLeaveRoom", roomId);
 
       const res = await fetch(
         `http://localhost:8080/api/rooms/delete/${roomId}`,
@@ -274,7 +275,9 @@ const HomePage = () => {
                 onLeave={handleLeaveRoom}
                 onGoChat={handleGoChat}
                 isInAnyRoom={isInAnyRoom}
+                onForceClose={() => setIsChatOpen(false)}
                 currentUserPuuid={currentUserPuuid}
+
               />
             ))
           ) : (
@@ -283,7 +286,10 @@ const HomePage = () => {
         </section>
         {isChatOpen && activeRoom && (
           <Modal onClose={() => setIsChatOpen(false)}>
-            <ChatInterface room={activeRoom} onLeaveRoom={handleLeaveRoom} />
+            <ChatInterface
+              room={activeRoom}
+              onLeaveRoom={handleLeaveRoom}
+            />
           </Modal>
         )}
       </div>
