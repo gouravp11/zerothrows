@@ -122,6 +122,41 @@ const HomePage = () => {
     room.participants?.some((p) => p.puuid === currentUserPuuid)
   );
 
+  const fetchRoomsAndJoin = async () => {
+    try {
+      const currentUser = JSON.parse(localStorage.getItem("user"));
+
+      if (!currentUser) {
+        console.error("User not logged in");
+        return;
+      }
+
+      const res = await fetch("http://localhost:8080/api/rooms", {
+        headers: {
+          "X-User-Puuid": currentUser.puuid, // send puuid as proof of login
+        },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setRooms(data);
+
+        const joinedRoom = data.find((room) =>
+        room.participants?.some((p) => p.puuid === currentUser.puuid)
+        );
+
+        if (joinedRoom) {
+          socket.emit("joinRoom", joinedRoom._id);
+        }
+      } else {
+        const errorData = await res.json();
+        console.error(errorData.error || "Failed to fetch rooms");
+      }
+    } catch (error) {
+      console.error("Failed to fetch rooms:", error);
+    }
+  };
+  
   const fetchRooms = async () => {
     try {
       const currentUser = JSON.parse(localStorage.getItem("user"));
@@ -183,7 +218,7 @@ const HomePage = () => {
   };
 
   useEffect(() => {
-    fetchRooms();
+    fetchRoomsAndJoin();
     socket.on("roomUpdated", () => {
       fetchRooms(); // re-fetch rooms on real-time updates
     });
