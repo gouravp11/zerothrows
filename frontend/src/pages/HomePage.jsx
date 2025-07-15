@@ -27,7 +27,7 @@ const HomePage = () => {
     const currentUser = JSON.parse(localStorage.getItem("user"));
     console.log("Room created:", roomData);
     setShowCreateForm(false);
-    fetchRooms(); // refresh rooms after creating a new one
+    fetchRooms();
     socket.emit("joinRoom", roomData._id);
     socket.emit("chatMessage", {
       roomId: roomData._id,
@@ -58,7 +58,7 @@ const HomePage = () => {
 
       if (res.ok) {
         console.log("Room deleted:", roomId);
-        fetchRooms(); // refresh list after deleting
+        fetchRooms();
       } else {
         const errorData = await res.json();
         alert(errorData.error || "Failed to delete room");
@@ -95,7 +95,7 @@ const HomePage = () => {
       if (res.ok) {
         const updatedRoom = await res.json();
         console.log("Joined room successfully:", updatedRoom);
-        fetchRooms(); // refresh list after joining
+        fetchRooms();
         socket.emit("joinRoom", roomId);
         socket.emit("chatMessage", {
           roomId,
@@ -133,7 +133,7 @@ const HomePage = () => {
 
       const res = await fetch("http://localhost:8080/api/rooms", {
         headers: {
-          "X-User-Puuid": currentUser.puuid, // send puuid as proof of login
+          "X-User-Puuid": currentUser.puuid,
         },
       });
 
@@ -168,7 +168,7 @@ const HomePage = () => {
 
       const res = await fetch("http://localhost:8080/api/rooms", {
         headers: {
-          "X-User-Puuid": currentUser.puuid, // send puuid as proof of login
+          "X-User-Puuid": currentUser.puuid,
         },
       });
 
@@ -200,8 +200,8 @@ const HomePage = () => {
       );
 
       if (res.ok) {
-        setIsChatOpen(false); // Close chat modal
-        fetchRooms(); // Refresh room list
+        setIsChatOpen(false);
+        fetchRooms();
         socket.emit("chatMessage", {
           roomId,
           sender: "System",
@@ -220,11 +220,11 @@ const HomePage = () => {
   useEffect(() => {
     fetchRoomsAndJoin();
     socket.on("roomUpdated", () => {
-      fetchRooms(); // re-fetch rooms on real-time updates
+      fetchRooms();
     });
 
     return () => {
-      socket.off("roomUpdated"); // clean up listener on unmount
+      socket.off("roomUpdated");
     };
   }, []);
 
@@ -238,32 +238,35 @@ const HomePage = () => {
 
   const otherRooms = rooms.filter(
     (room) =>
-      room._id !== joinedRoom?._id && // exclude joinedRoom
+      room._id !== joinedRoom?._id &&
       room.createdBy?.puuid !== user.puuid &&
       (regionFilter === "ALL" || room.region === regionFilter)
   );
+
   return (
     <>
-      <div className="p-4 bg-gray-100 flex items-center justify-between">
-        <button
-          onClick={handleLogout}
-          className="bg-red-500 text-white px-4 py-2 rounded cursor-pointer"
-        >
-          Logout
-        </button>
-
-        <div>
+      <div className="flex items-center justify-between bg-white shadow-md px-6 py-4">
+        <h1 className="text-2xl font-extrabold text-green-600">ZeroThrows</h1>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={handleLogout}
+            className="bg-red-500 hover:bg-red-600 transition text-white px-4 py-2 rounded-md cursor-pointer"
+          >
+            Logout
+          </button>
           <ProfileIcon player={user} />
         </div>
       </div>
 
-      <div className="p-4 space-y-8">
-        <button
-          onClick={() => setShowCreateForm(true)}
-          className="text-4xl my-5 border-2 border-gray-200 rounded p-2 cursor-pointer"
-        >
-          + Create Room
-        </button>
+      <div className="px-4 py-6 max-w-4xl mx-auto space-y-12">
+        <div className="text-center">
+          <button
+            onClick={() => setShowCreateForm(true)}
+            className="text-xl font-medium bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded shadow cursor-pointer"
+          >
+            + Create Room
+          </button>
+        </div>
 
         {showCreateForm && (
           <Modal onClose={() => setShowCreateForm(false)}>
@@ -272,26 +275,26 @@ const HomePage = () => {
         )}
 
         <section>
-          <h2 className="text-2xl font-bold mb-4">My Room:</h2>
-          {myRoom? (
-              <RoomCard
-                key={myRoom._id}
-                room={myRoom}
-                isOwnRoom={true}
-                onDelete={handleDeleteRoom}
-                onJoin={handleJoinRoom}
-                onGoChat={handleGoChat}
-                isInAnyRoom={isInAnyRoom}
-                currentUserPuuid={currentUserPuuid}
-              />
+          <h2 className="text-2xl font-semibold mb-2">My Room</h2>
+          {myRoom ? (
+            <RoomCard
+              key={myRoom._id}
+              room={myRoom}
+              isOwnRoom={true}
+              onDelete={handleDeleteRoom}
+              onJoin={handleJoinRoom}
+              onGoChat={handleGoChat}
+              isInAnyRoom={isInAnyRoom}
+              currentUserPuuid={currentUserPuuid}
+            />
           ) : (
-            <p className="text-gray-600">You haven’t created any rooms yet.</p>
+            <p className="text-gray-500">You haven’t created any rooms yet.</p>
           )}
         </section>
 
         <section>
-          <h2 className="text-2xl font-bold mb-4">Joined Room:</h2>
-        {joinedRoom ? (
+          <h2 className="text-2xl font-semibold mb-2">Joined Room</h2>
+          {joinedRoom ? (
             <RoomCard
               room={joinedRoom}
               isOwnRoom={false}
@@ -302,15 +305,15 @@ const HomePage = () => {
               currentUserPuuid={currentUserPuuid}
             />
           ) : (
-            <p className="text-gray-600">You haven’t joined any room yet.</p>
+            <p className="text-gray-500">You haven’t joined any room yet.</p>
           )}
         </section>
 
         <section>
-          <div className="flex items-center gap-4 mb-4">
-            <h2 className="text-2xl font-bold">Browse Rooms:</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-semibold">Browse Rooms</h2>
             <select
-              className="px-3 py-2 border rounded"
+              className="px-3 py-2 border border-gray-300 rounded-md"
               value={regionFilter}
               onChange={(e) => setRegionFilter(e.target.value)}
             >
@@ -336,7 +339,7 @@ const HomePage = () => {
               />
             ))
           ) : (
-            <p className="text-gray-600">No rooms found in this region.</p>
+            <p className="text-gray-500">No rooms found in this region.</p>
           )}
         </section>
 
