@@ -142,7 +142,7 @@ const HomePage = () => {
         setRooms(data);
 
         const joinedRoom = data.find((room) =>
-        room.participants?.some((p) => p.puuid === currentUser.puuid)
+          room.participants?.some((p) => p.puuid === currentUser.puuid)
         );
 
         if (joinedRoom) {
@@ -156,7 +156,7 @@ const HomePage = () => {
       console.error("Failed to fetch rooms:", error);
     }
   };
-  
+
   const fetchRooms = async () => {
     try {
       const currentUser = JSON.parse(localStorage.getItem("user"));
@@ -228,14 +228,20 @@ const HomePage = () => {
     };
   }, []);
 
-  const myRooms = rooms.filter((room) => room.createdBy?.puuid === user.puuid);
+  const myRoom = rooms.filter((room) => room.createdBy?.puuid === user.puuid)[0];
+
+  const joinedRoom = rooms.find(
+    (room) =>
+      room.createdBy?.puuid !== user.puuid &&
+      room.participants?.some((p) => p.puuid === user.puuid)
+  );
 
   const otherRooms = rooms.filter(
     (room) =>
+      room._id !== joinedRoom?._id && // exclude joinedRoom
       room.createdBy?.puuid !== user.puuid &&
       (regionFilter === "ALL" || room.region === regionFilter)
   );
-
   return (
     <>
       <div className="p-4 bg-gray-100 flex items-center justify-between">
@@ -266,12 +272,11 @@ const HomePage = () => {
         )}
 
         <section>
-          <h2 className="text-2xl font-bold mb-4">My Rooms</h2>
-          {myRooms.length > 0 ? (
-            myRooms.map((room) => (
+          <h2 className="text-2xl font-bold mb-4">My Room:</h2>
+          {myRoom? (
               <RoomCard
-                key={room._id}
-                room={room}
+                key={myRoom._id}
+                room={myRoom}
                 isOwnRoom={true}
                 onDelete={handleDeleteRoom}
                 onJoin={handleJoinRoom}
@@ -279,15 +284,31 @@ const HomePage = () => {
                 isInAnyRoom={isInAnyRoom}
                 currentUserPuuid={currentUserPuuid}
               />
-            ))
           ) : (
             <p className="text-gray-600">You haven’t created any rooms yet.</p>
           )}
         </section>
 
         <section>
+          <h2 className="text-2xl font-bold mb-4">Joined Room:</h2>
+        {joinedRoom ? (
+            <RoomCard
+              room={joinedRoom}
+              isOwnRoom={false}
+              onLeave={handleLeaveRoom}
+              onGoChat={handleGoChat}
+              isInAnyRoom={isInAnyRoom}
+              onForceClose={() => setIsChatOpen(false)}
+              currentUserPuuid={currentUserPuuid}
+            />
+          ) : (
+            <p className="text-gray-600">You haven’t joined any room yet.</p>
+          )}
+        </section>
+
+        <section>
           <div className="flex items-center gap-4 mb-4">
-            <h2 className="text-2xl font-bold">Browse Rooms</h2>
+            <h2 className="text-2xl font-bold">Browse Rooms:</h2>
             <select
               className="px-3 py-2 border rounded"
               value={regionFilter}
@@ -312,19 +333,16 @@ const HomePage = () => {
                 isInAnyRoom={isInAnyRoom}
                 onForceClose={() => setIsChatOpen(false)}
                 currentUserPuuid={currentUserPuuid}
-
               />
             ))
           ) : (
             <p className="text-gray-600">No rooms found in this region.</p>
           )}
         </section>
+
         {isChatOpen && activeRoom && (
           <Modal onClose={() => setIsChatOpen(false)}>
-            <ChatInterface
-              room={activeRoom}
-              onLeaveRoom={handleLeaveRoom}
-            />
+            <ChatInterface room={activeRoom} onLeaveRoom={handleLeaveRoom} />
           </Modal>
         )}
       </div>
