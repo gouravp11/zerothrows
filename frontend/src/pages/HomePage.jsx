@@ -6,6 +6,7 @@ import CreateRoomForm from "../components/CreateRoomForm";
 import RoomCard from "../components/RoomCard";
 import ChatInterface from "../components/ChatInterface";
 import socket from "../utils/socket";
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -42,7 +43,7 @@ const HomePage = () => {
       socket.emit("requestLeaveRoom", roomId);
 
       const res = await fetch(
-        `http://localhost:8080/api/rooms/delete/${roomId}`,
+        `${backendUrl}/api/rooms/delete/${roomId}`,
         {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
@@ -78,7 +79,7 @@ const HomePage = () => {
       }
 
       const res = await fetch(
-        `http://localhost:8080/api/rooms/join/${roomId}`,
+        `${backendUrl}/api/rooms/join/${roomId}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -131,7 +132,7 @@ const HomePage = () => {
         return;
       }
 
-      const res = await fetch("http://localhost:8080/api/rooms", {
+      const res = await fetch(`${backendUrl}/api/rooms`, {
         headers: {
           "X-User-Puuid": currentUser.puuid, // send puuid as proof of login
         },
@@ -166,7 +167,7 @@ const HomePage = () => {
         return;
       }
 
-      const res = await fetch("http://localhost:8080/api/rooms", {
+      const res = await fetch(`${backendUrl}/api/rooms`, {
         headers: {
           "X-User-Puuid": currentUser.puuid, // send puuid as proof of login
         },
@@ -189,7 +190,7 @@ const HomePage = () => {
 
     try {
       const res = await fetch(
-        `http://localhost:8080/api/rooms/leave/${roomId}`,
+        `${backendUrl}/api/rooms/leave/${roomId}`,
         {
           method: "POST",
           headers: {
