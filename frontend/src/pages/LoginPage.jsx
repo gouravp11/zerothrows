@@ -19,7 +19,7 @@ const LoginPage = () => {
 
   return (
     <div className="h-screen flex flex-col items-center justify-center bg-gray-100">
-      <h1 className="text-3xl font-bold mb-6">Welcome to FiveStack</h1>
+      <h1 className="text-3xl font-bold mb-6">Welcome to ZeroThrows</h1>
 
       <label htmlFor="user">Select mock user: </label>
       <select
