@@ -15,14 +15,14 @@ const server = http.createServer(app); // Create HTTP server for Socket.io
 
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173"], // Frontend origin
+    origin: [`${process.env.FRONTEND_URL}`], // Frontend origin
     methods: ["GET", "POST"],
   },
 });
 app.set("io", io);
 
 const corsOptions = {
-  origin: ["http://localhost:5173"],
+  origin: [`${process.env.FRONTEND_URL}`],
 };
 app.use(cors(corsOptions));
 app.use(express.json());
