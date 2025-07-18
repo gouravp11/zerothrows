@@ -2,9 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
-const LoginPage = () => {
-  const navigate = useNavigate();
-
+const LoginPage = ({onLogin}) => {
   const users = ["demo", "alt", "bot", "alpha", "bravo", "charlie", "barley"];
   const [selected, setSelected] = useState("demo");
 
@@ -12,8 +10,7 @@ const LoginPage = () => {
     const res = await fetch(`${backendUrl}/auth/mock-login/${selected}`);
     const user = await res.json();
     localStorage.setItem("user", JSON.stringify(user));
-    navigate("/");
-    window.location.reload();
+    onLogin();
   };
 
 
@@ -21,7 +18,7 @@ const LoginPage = () => {
     <div className="h-screen flex flex-col items-center justify-center bg-gray-100">
       <h1 className="text-3xl font-bold mb-6">Welcome to ZeroThrows</h1>
 
-      <label htmlFor="user">Select mock user: </label>
+      <label htmlFor="user">Select mock user: (Mock Riot Sign In)</label>
       <select
         name="user"
         onChange={(e) => setSelected(e.target.value)}

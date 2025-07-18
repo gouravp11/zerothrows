@@ -1,4 +1,3 @@
-import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import ProfileIcon from "../components/ProfileIcon";
 import Modal from "../components/Modal";
@@ -8,8 +7,7 @@ import ChatInterface from "../components/ChatInterface";
 import socket from "../utils/socket";
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
-const HomePage = () => {
-  const navigate = useNavigate();
+const HomePage = ({onLogout}) => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [rooms, setRooms] = useState([]);
   const [regionFilter, setRegionFilter] = useState("ALL");
@@ -20,8 +18,7 @@ const HomePage = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("user");
-    navigate("/login");
-    window.location.reload();
+    onLogout();
   };
 
   const handleCreateRoom = (roomData) => {
