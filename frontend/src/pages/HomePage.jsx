@@ -23,7 +23,7 @@ const HomePage = ({onLogout}) => {
 
   const handleCreateRoom = (roomData) => {
     const currentUser = JSON.parse(localStorage.getItem("user"));
-    console.log("Room created:", roomData);
+    // console.log("Room created:", roomData); 
     setShowCreateForm(false);
     fetchRooms();
     socket.emit("joinRoom", roomData._id);
@@ -55,7 +55,7 @@ const HomePage = ({onLogout}) => {
       );
 
       if (res.ok) {
-        console.log("Room deleted:", roomId);
+        // console.log("Room deleted:", roomId); 
         fetchRooms();
       } else {
         const errorData = await res.json();
@@ -92,7 +92,7 @@ const HomePage = ({onLogout}) => {
 
       if (res.ok) {
         const updatedRoom = await res.json();
-        console.log("Joined room successfully:", updatedRoom);
+        // console.log("Joined room successfully:", updatedRoom); 
         fetchRooms();
         socket.emit("joinRoom", roomId);
         socket.emit("chatMessage", {

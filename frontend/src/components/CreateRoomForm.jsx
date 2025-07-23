@@ -37,7 +37,7 @@ const CreateRoomForm = ({ onCreate }) => {
 
       if (res.ok) {
         const savedRoom = await res.json();
-        console.log("Room created:", savedRoom);
+        // console.log("Room created:", savedRoom); 
         onCreate(savedRoom);
         setRoomName("");
         setRegion("NA");
