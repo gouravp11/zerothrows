@@ -6,7 +6,7 @@ import { useState } from "react";
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("user"));
   return (
-      <Routes>
+      <Routes key={isLoggedIn}>
         <Route
           path="/"
           element={isLoggedIn ? <HomePage onLogout={()=>setIsLoggedIn(false)}/> : <Navigate to="/login" />}
