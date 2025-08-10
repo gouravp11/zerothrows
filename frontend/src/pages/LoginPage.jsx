@@ -1,18 +1,24 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
-const LoginPage = ({onLogin}) => {
+const LoginPage = ({ onLogin }) => {
   const users = ["demo", "alt", "bot", "alpha", "bravo", "charlie", "barley"];
   const [selected, setSelected] = useState("demo");
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    const res = await fetch(`${backendUrl}/auth/mock-login/${selected}`);
-    const user = await res.json();
-    localStorage.setItem("user", JSON.stringify(user));
-    onLogin();
+    try {
+      setLoading(true);
+      const res = await fetch(`${backendUrl}/auth/mock-login/${selected}`);
+      const user = await res.json();
+      localStorage.setItem("user", JSON.stringify(user));
+      onLogin();
+    } catch (err) {
+      console.error("Login failed:", err);
+    } finally {
+      setLoading(false);
+    }
   };
-
 
   return (
     <div className="h-screen flex flex-col items-center justify-center bg-gray-100">
@@ -23,6 +29,7 @@ const LoginPage = ({onLogin}) => {
         name="user"
         onChange={(e) => setSelected(e.target.value)}
         className="mb-4 px-4 py-2 rounded border border-gray-300"
+        disabled={loading}
       >
         {users.map((u) => (
           <option key={u} value={u}>
@@ -33,9 +40,14 @@ const LoginPage = ({onLogin}) => {
 
       <button
         onClick={handleLogin}
-        className="bg-indigo-600 text-white px-6 py-3 rounded hover:bg-indigo-700 cursor-pointer"
+        disabled={loading}
+        className={`px-6 py-3 rounded text-white ${
+          loading
+            ? "bg-gray-400 cursor-not-allowed"
+            : "bg-indigo-600 hover:bg-indigo-700 cursor-pointer"
+        }`}
       >
-        Sign in with Riot (Mock)
+        {loading ? "Signing in..." : "Sign in with Riot (Mock)"}
       </button>
     </div>
   );
