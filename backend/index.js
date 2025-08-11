@@ -31,6 +31,7 @@ connectDB();
 
 app.use("/auth", authRoutes);
 app.use("/api/rooms", roomRoutes);
+app.get('/health', (req,res) => res.sendStatus(200)) // A route to keep backend warm (Avoiding serverless cold-start)
 
 // Minimal Socket.io connection
 io.on("connection", (socket) => {
