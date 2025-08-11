@@ -88,7 +88,7 @@ const HomePage = ({ onLogout }) => {
       if (res.ok) {
         const updatedRoom = await res.json();
         // console.log("Joined room successfully:", updatedRoom);
-        fetchRooms();
+        await fetchRooms();
         socket.emit("joinRoom", roomId);
         socket.emit("chatMessage", {
           roomId,
@@ -191,7 +191,7 @@ const HomePage = ({ onLogout }) => {
 
       if (res.ok) {
         setIsChatOpen(false);
-        fetchRooms();
+        await fetchRooms();
         socket.emit("chatMessage", {
           roomId,
           sender: "System",
