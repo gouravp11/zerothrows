@@ -1,0 +1,14 @@
+name: Keep Backend Warm
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"  # every 10 minutes
+  workflow_dispatch: {}     # lets you run it manually for testing
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render Backend
+        run: |
+          curl -fsS https://zerothrows-backend.onrender.com/health || (echo "Ping failed" && exit 1)
