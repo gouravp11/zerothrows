@@ -54,7 +54,7 @@ const HomePage = ({ onLogout }) => {
 
       if (res.ok) {
         // console.log("Room deleted:", roomId);
-        fetchRooms();
+        await fetchRooms();
       } else {
         const errorData = await res.json();
         alert(errorData.error || "Failed to delete room");

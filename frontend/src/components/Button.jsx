@@ -1,33 +1,40 @@
 import { useState } from "react";
 
-export default function Button({ children, onClick, className = "", ...props }) {
-  const [loading, setLoading] = useState(false);
+export default function Button({
+  children,
+  onClick,
+  loading: externalLoading, // loading from parent
+  className = "",
+  ...props
+}) {
+  const [internalLoading, setInternalLoading] = useState(false);
 
   const handleClick = async (e) => {
     if (!onClick) return;
     const result = onClick(e);
 
-    // Detect async function
     if (result instanceof Promise) {
-      setLoading(true);
+      setInternalLoading(true);
       try {
         await result;
       } finally {
-        setLoading(false);
+        setInternalLoading(false);
       }
     }
   };
 
+  const isLoading = externalLoading ?? internalLoading;
+
   return (
     <button
       onClick={handleClick}
-      disabled={loading}
+      disabled={isLoading}
       className={`px-4 py-2 rounded bg-blue-600 text-white 
                   hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed 
                   flex items-center justify-center gap-2 ${className}`}
       {...props}
     >
-      {loading && (
+      {isLoading && (
         <svg
           className="animate-spin h-4 w-4 text-white"
           xmlns="http://www.w3.org/2000/svg"

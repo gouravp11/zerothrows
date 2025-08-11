@@ -8,9 +8,11 @@ const CreateRoomForm = ({ onCreate }) => {
   const [minRank, setMinRank] = useState("");
   const [minPeakRank, setMinPeakRank] = useState("");
   const [description, setDescription] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     const currentUser = JSON.parse(localStorage.getItem("user"));
 
@@ -51,6 +53,8 @@ const CreateRoomForm = ({ onCreate }) => {
       }
     } catch (error) {
       console.error("Error creating room:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -128,6 +132,7 @@ const CreateRoomForm = ({ onCreate }) => {
       <Button
         type="submit"
         className="w-full bg-indigo-600 text-white py-2 rounded-md text-lg font-medium hover:bg-indigo-700 transition cursor-pointer"
+        loading={loading}
       >
         Create Room
       </Button>
