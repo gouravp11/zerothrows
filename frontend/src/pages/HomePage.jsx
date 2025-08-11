@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Button from "../components/Button";
 import ProfileIcon from "../components/ProfileIcon";
 import Modal from "../components/Modal";
 import CreateRoomForm from "../components/CreateRoomForm";
@@ -7,7 +8,7 @@ import ChatInterface from "../components/ChatInterface";
 import socket from "../utils/socket";
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
-const HomePage = ({onLogout}) => {
+const HomePage = ({ onLogout }) => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [rooms, setRooms] = useState([]);
   const [regionFilter, setRegionFilter] = useState("ALL");
@@ -23,7 +24,7 @@ const HomePage = ({onLogout}) => {
 
   const handleCreateRoom = (roomData) => {
     const currentUser = JSON.parse(localStorage.getItem("user"));
-    // console.log("Room created:", roomData); 
+    // console.log("Room created:", roomData);
     setShowCreateForm(false);
     fetchRooms();
     socket.emit("joinRoom", roomData._id);
@@ -39,23 +40,20 @@ const HomePage = ({onLogout}) => {
       const currentUser = JSON.parse(localStorage.getItem("user"));
       socket.emit("requestLeaveRoom", roomId);
 
-      const res = await fetch(
-        `${backendUrl}/api/rooms/delete/${roomId}`,
-        {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            createdBy: {
-              gameName: currentUser.riotId.gameName,
-              tagLine: currentUser.riotId.tagLine,
-              puuid: currentUser.puuid,
-            },
-          }),
-        }
-      );
+      const res = await fetch(`${backendUrl}/api/rooms/delete/${roomId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          createdBy: {
+            gameName: currentUser.riotId.gameName,
+            tagLine: currentUser.riotId.tagLine,
+            puuid: currentUser.puuid,
+          },
+        }),
+      });
 
       if (res.ok) {
-        // console.log("Room deleted:", roomId); 
+        // console.log("Room deleted:", roomId);
         fetchRooms();
       } else {
         const errorData = await res.json();
@@ -75,24 +73,21 @@ const HomePage = ({onLogout}) => {
         return;
       }
 
-      const res = await fetch(
-        `${backendUrl}/api/rooms/join/${roomId}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            participant: {
-              gameName: currentUser.riotId.gameName,
-              tagLine: currentUser.riotId.tagLine,
-              puuid: currentUser.puuid,
-            },
-          }),
-        }
-      );
+      const res = await fetch(`${backendUrl}/api/rooms/join/${roomId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          participant: {
+            gameName: currentUser.riotId.gameName,
+            tagLine: currentUser.riotId.tagLine,
+            puuid: currentUser.puuid,
+          },
+        }),
+      });
 
       if (res.ok) {
         const updatedRoom = await res.json();
-        // console.log("Joined room successfully:", updatedRoom); 
+        // console.log("Joined room successfully:", updatedRoom);
         fetchRooms();
         socket.emit("joinRoom", roomId);
         socket.emit("chatMessage", {
@@ -186,16 +181,13 @@ const HomePage = ({onLogout}) => {
     const currentUser = JSON.parse(localStorage.getItem("user"));
 
     try {
-      const res = await fetch(
-        `${backendUrl}/api/rooms/leave/${roomId}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ puuid: currentUser.puuid }),
-        }
-      );
+      const res = await fetch(`${backendUrl}/api/rooms/leave/${roomId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ puuid: currentUser.puuid }),
+      });
 
       if (res.ok) {
         setIsChatOpen(false);
@@ -226,7 +218,9 @@ const HomePage = ({onLogout}) => {
     };
   }, []);
 
-  const myRoom = rooms.filter((room) => room.createdBy?.puuid === user.puuid)[0];
+  const myRoom = rooms.filter(
+    (room) => room.createdBy?.puuid === user.puuid
+  )[0];
 
   const joinedRoom = rooms.find(
     (room) =>
@@ -246,24 +240,24 @@ const HomePage = ({onLogout}) => {
       <div className="flex items-center justify-between bg-white shadow-md px-6 py-4">
         <h1 className="text-2xl font-extrabold text-green-600">ZeroThrows</h1>
         <div className="flex items-center gap-4">
-          <button
+          <Button
             onClick={handleLogout}
             className="bg-red-500 hover:bg-red-600 transition text-white px-4 py-2 rounded-md cursor-pointer"
           >
             Logout
-          </button>
+          </Button>
           <ProfileIcon player={user} />
         </div>
       </div>
 
       <div className="px-4 py-6 max-w-4xl mx-auto space-y-12">
-        <div className="text-center">
-          <button
+        <div className="flex justify-center">
+          <Button
             onClick={() => setShowCreateForm(true)}
             className="text-xl font-medium bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded shadow cursor-pointer"
           >
             + Create Room
-          </button>
+          </Button>
         </div>
 
         {showCreateForm && (

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Button from "./Button";
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const CreateRoomForm = ({ onCreate }) => {
@@ -124,12 +125,12 @@ const CreateRoomForm = ({ onCreate }) => {
         />
       </div>
 
-      <button
+      <Button
         type="submit"
         className="w-full bg-indigo-600 text-white py-2 rounded-md text-lg font-medium hover:bg-indigo-700 transition cursor-pointer"
       >
         Create Room
-      </button>
+      </Button>
     </form>
   );
 };

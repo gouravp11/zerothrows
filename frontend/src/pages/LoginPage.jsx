@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Button from "../components/Button";
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const LoginPage = ({ onLogin }) => {
@@ -38,17 +39,12 @@ const LoginPage = ({ onLogin }) => {
         ))}
       </select>
 
-      <button
+      <Button
         onClick={handleLogin}
-        disabled={loading}
-        className={`px-6 py-3 rounded text-white ${
-          loading
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-indigo-600 hover:bg-indigo-700 cursor-pointer"
-        }`}
+        className="bg-indigo-600 hover:bg-indigo-700 cursor-pointer"
       >
-        {loading ? "Signing in..." : "Sign in with Riot (Mock)"}
-      </button>
+        Sign in with Riot (Mock)
+      </Button>
     </div>
   );
 };

@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import socket from "../utils/socket";
+import Button from "./Button";
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const ChatInterface = ({ room, onLeaveRoom }) => {
@@ -61,12 +62,12 @@ const ChatInterface = ({ room, onLeaveRoom }) => {
           Chat - {room.roomName} ({room.region})
         </h2>
         {!isOwner && (
-          <button
+          <Button
             onClick={() => onLeaveRoom(room._id)}
             className="bg-red-500 hover:bg-red-600 text-white text-sm font-medium px-3 py-1 rounded cursor-pointer"
           >
             Leave Room
-          </button>
+          </Button>
         )}
       </div>
 
@@ -110,12 +111,12 @@ const ChatInterface = ({ room, onLeaveRoom }) => {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
         />
-        <button
+        <Button
           onClick={sendMessage}
           className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-r-md cursor-pointer"
         >
           Send
-        </button>
+        </Button>
       </div>
     </div>
   );

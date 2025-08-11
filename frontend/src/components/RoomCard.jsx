@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import socket from "../utils/socket";
+import Button from "./Button";
 
 const RoomCard = ({
   room,
@@ -71,55 +72,55 @@ const RoomCard = ({
       <div className="flex flex-wrap gap-3 mt-3">
         {isOwnRoom ? (
           <>
-            <button
+            <Button
               onClick={() => onDelete(room._id)}
               className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md cursor-pointer"
             >
               Delete Room
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => onGoChat(room._id)}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md cursor-pointer"
             >
               Go to Chat
-            </button>
+            </Button>
           </>
         ) : isParticipant ? (
           <>
-            <button
+            <Button
               onClick={() => onGoChat(room._id)}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md cursor-pointer"
             >
               Go to Chat
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => onLeave(room._id)}
               className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md cursor-pointer"
             >
               Leave Room
-            </button>
+            </Button>
           </>
         ) : room.participants?.length >= 5 ? (
-          <button
+          <Button
             disabled
             className="bg-gray-400 text-white px-4 py-2 rounded-md cursor-not-allowed"
           >
             Room Full
-          </button>
+          </Button>
         ) : isInAnyRoom ? (
-          <button
+          <Button
             disabled
             className="bg-gray-400 text-white px-4 py-2 rounded-md cursor-not-allowed"
           >
             Already in Room
-          </button>
+          </Button>
         ) : (
-          <button
+          <Button
             onClick={() => onJoin(room._id)}
             className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md cursor-pointer"
           >
             Join Room
-          </button>
+          </Button>
         )}
       </div>
     </div>
