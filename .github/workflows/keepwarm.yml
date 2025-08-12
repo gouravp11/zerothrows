@@ -2,13 +2,23 @@ name: Keep Backend Warm
 
 on:
   schedule:
-    - cron: "*/10 * * * *"  # every 10 minutes
-  workflow_dispatch: {}     # lets you run it manually for testing
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
 
 jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Render Backend
+      - name: Retry ping until success
         run: |
-          curl -fsS https://zerothrows-backend.onrender.com/health || (echo "Ping failed" && exit 1)
+          for i in {1..5}; do
+            echo "Ping attempt $i at $(date -u)"
+            if curl -fsS https://zerothrows-backend.onrender.com/health; then
+              echo "Ping successful"
+              exit 0
+            fi
+            echo "Ping failed, retrying in 10s..."
+            sleep 10
+          done
+          echo "All retries failed"
+          exit 1
