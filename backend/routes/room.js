@@ -4,199 +4,193 @@ const Room = require("../models/RoomModel");
 
 // GET /api/rooms/ -> fetch all rooms
 router.get("/", async (req, res) => {
-  try {
-    const userPuuid = req.header("X-User-Puuid");
+    try {
+        const userPuuid = req.header("X-User-Puuid");
 
-    if (!userPuuid) {
-      return res.status(401).json({ error: "Unauthorized: User not logged in" });
+        if (!userPuuid) {
+            return res.status(401).json({ error: "Unauthorized: User not logged in" });
+        }
+
+        const rooms = await Room.find();
+        res.status(200).json(rooms);
+    } catch (error) {
+        console.error("Error fetching rooms:", error);
+        res.status(500).json({ error: "Failed to fetch rooms" });
     }
-
-    const rooms = await Room.find();
-    res.status(200).json(rooms);
-  } catch (error) {
-    console.error("Error fetching rooms:", error);
-    res.status(500).json({ error: "Failed to fetch rooms" });
-  }
 });
 
 // Fetch messages of a particular room (with roomId)
 router.get("/:roomId/messages", async (req, res) => {
-  try {
-    const room = await Room.findById(req.params.roomId);
-    if (!room) return res.status(404).json({ error: "Room not found" });
+    try {
+        const room = await Room.findById(req.params.roomId);
+        if (!room) return res.status(404).json({ error: "Room not found" });
 
-    res.json({ success: true, messages: room.messages || [] });
-  } catch (err) {
-    console.error("Error fetching messages:", err);
-    res.status(500).json({ error: "Failed to fetch messages" });
-  }
+        res.json({ success: true, messages: room.messages || [] });
+    } catch (err) {
+        console.error("Error fetching messages:", err);
+        res.status(500).json({ error: "Failed to fetch messages" });
+    }
 });
 
 // POST /api/rooms/create -> create a room
 router.post("/create", async (req, res) => {
-  try {
-    const roomData = req.body;
-    const { createdBy } = roomData;
+    try {
+        const roomData = req.body;
+        const { createdBy } = roomData;
 
-    // Check if user logged in or not
-    if (!createdBy || !createdBy.puuid) {
-      return res.status(401).json({ error: "Unauthorized: User info missing" });
+        // Check if user logged in or not
+        if (!createdBy || !createdBy.puuid) {
+            return res.status(401).json({ error: "Unauthorized: User info missing" });
+        }
+
+        // Check if this user already has any room
+        const existingRoom = await Room.findOne({
+            "createdBy.puuid": createdBy.puuid
+        });
+
+        if (existingRoom) {
+            return res.status(400).json({
+                error: "You already have a room. You cannot create multiple rooms at the same time."
+            });
+        }
+
+        // Check if user is already a participant in any room
+        const existingParticipantRoom = await Room.findOne({
+            "participants.puuid": createdBy.puuid
+        });
+
+        if (existingParticipantRoom) {
+            return res.status(400).json({
+                error: "You are already in a room. Leave your existing room before creating a new one."
+            });
+        }
+
+        // Add the creator to the participants list with full details
+        roomData.participants = [
+            {
+                gameName: createdBy.gameName,
+                tagLine: createdBy.tagLine,
+                puuid: createdBy.puuid
+            }
+        ];
+
+        const room = new Room(roomData);
+        await room.save();
+
+        const io = req.app.get("io");
+        io.emit("roomUpdated");
+
+        res.status(201).json(room);
+    } catch (error) {
+        console.error("Error creating room:", error);
+        res.status(500).json({ error: "Failed to create room" });
     }
-
-    // Check if this user already has any room
-    const existingRoom = await Room.findOne({
-      "createdBy.puuid": createdBy.puuid,
-    });
-
-    if (existingRoom) {
-      return res.status(400).json({
-        error: "You already have a room. You cannot create multiple rooms at the same time.",
-      });
-    }
-
-    // Check if user is already a participant in any room
-    const existingParticipantRoom = await Room.findOne({
-      "participants.puuid": createdBy.puuid,
-    });
-
-    if (existingParticipantRoom) {
-      return res.status(400).json({
-        error: "You are already in a room. Leave your existing room before creating a new one.",
-      });
-    }
-
-    // Add the creator to the participants list with full details
-    roomData.participants = [
-      {
-        gameName: createdBy.gameName,
-        tagLine: createdBy.tagLine,
-        puuid: createdBy.puuid,
-      },
-    ];
-
-    const room = new Room(roomData);
-    await room.save();
-
-    const io = req.app.get("io");
-    io.emit("roomUpdated");
-
-    res.status(201).json(room);
-  } catch (error) {
-    console.error("Error creating room:", error);
-    res.status(500).json({ error: "Failed to create room" });
-  }
 });
-
 
 // DELETE /api/rooms/:roomId -> delete a room by ID
 router.delete("/delete/:roomId", async (req, res) => {
-  try {
-    const { roomId } = req.params;
-    const { createdBy } = req.body;
+    try {
+        const { roomId } = req.params;
+        const { createdBy } = req.body;
 
-    if (!createdBy || !createdBy.puuid) {
-      return res.status(401).json({ error: "Unauthorized: User info missing" });
+        if (!createdBy || !createdBy.puuid) {
+            return res.status(401).json({ error: "Unauthorized: User info missing" });
+        }
+
+        const room = await Room.findById(roomId);
+
+        if (!room) {
+            return res.status(404).json({ error: "Room not found" });
+        }
+
+        if (room.createdBy.puuid !== createdBy.puuid) {
+            return res.status(403).json({ error: "Forbidden: You can only delete your own room" });
+        }
+
+        await room.deleteOne();
+
+        const io = req.app.get("io");
+        io.emit("roomUpdated");
+
+        res.json({ message: "Room deleted successfully", room });
+    } catch (error) {
+        console.error("Error deleting room:", error);
+        res.status(500).json({ error: "Failed to delete room" });
     }
-
-    const room = await Room.findById(roomId);
-
-    if (!room) {
-      return res.status(404).json({ error: "Room not found" });
-    }
-
-    if (room.createdBy.puuid !== createdBy.puuid) {
-      return res.status(403).json({ error: "Forbidden: You can only delete your own room" });
-    }
-
-    await room.deleteOne();
-
-    const io = req.app.get("io");
-    io.emit("roomUpdated");
-
-    res.json({ message: "Room deleted successfully", room });
-  } catch (error) {
-    console.error("Error deleting room:", error);
-    res.status(500).json({ error: "Failed to delete room" });
-  }
 });
 
 router.post("/join/:roomId", async (req, res) => {
-  try {
-    const { roomId } = req.params;
-    const { participant } = req.body;
+    try {
+        const { roomId } = req.params;
+        const { participant } = req.body;
 
-    if (!participant || !participant.puuid) {
-      return res.status(400).json({ error: "Participant info missing" });
+        if (!participant || !participant.puuid) {
+            return res.status(400).json({ error: "Participant info missing" });
+        }
+
+        const room = await Room.findById(roomId);
+
+        if (!room) {
+            return res.status(404).json({ error: "Room not found" });
+        }
+
+        // Check if user is already a participant
+        const alreadyParticipant = room.participants.some((p) => p.puuid === participant.puuid);
+
+        if (alreadyParticipant) {
+            return res.status(400).json({ error: "You have already joined this room" });
+        }
+
+        // Check if max participants reached
+        if (room.participants.length >= 5) {
+            return res.status(400).json({ error: "Room is full. Max 5 participants allowed" });
+        }
+
+        room.participants.push(participant);
+        await room.save();
+
+        const io = req.app.get("io");
+        io.emit("roomUpdated");
+
+        res.json(room);
+    } catch (error) {
+        console.error("Error joining room:", error);
+        res.status(500).json({ error: "Failed to join room" });
     }
-
-    const room = await Room.findById(roomId);
-
-    if (!room) {
-      return res.status(404).json({ error: "Room not found" });
-    }
-
-    // Check if user is already a participant
-    const alreadyParticipant = room.participants.some(
-      (p) => p.puuid === participant.puuid
-    );
-
-    if (alreadyParticipant) {
-      return res.status(400).json({ error: "You have already joined this room" });
-    }
-
-    // Check if max participants reached
-    if (room.participants.length >= 5) {
-      return res.status(400).json({ error: "Room is full. Max 5 participants allowed" });
-    }
-
-    room.participants.push(participant);
-    await room.save();
-
-    const io = req.app.get("io");
-    io.emit("roomUpdated");
-
-    res.json(room);
-  } catch (error) {
-    console.error("Error joining room:", error);
-    res.status(500).json({ error: "Failed to join room" });
-  }
 });
 
 router.post("/leave/:roomId", async (req, res) => {
-  try {
-    const { roomId } = req.params;
-    const { puuid } = req.body;
+    try {
+        const { roomId } = req.params;
+        const { puuid } = req.body;
 
-    if (!puuid) {
-      return res.status(400).json({ error: "User PUUID is required to leave room" });
+        if (!puuid) {
+            return res.status(400).json({ error: "User PUUID is required to leave room" });
+        }
+
+        const room = await Room.findById(roomId);
+        if (!room) {
+            return res.status(404).json({ error: "Room not found" });
+        }
+
+        // Check if user is in the room
+        const wasParticipant = room.participants.some((p) => p.puuid === puuid);
+        if (!wasParticipant) {
+            return res.status(400).json({ error: "You are not in this room" });
+        }
+
+        // Remove the participant
+        room.participants = room.participants.filter((p) => p.puuid !== puuid);
+        await room.save();
+
+        const io = req.app.get("io");
+        io.emit("roomUpdated");
+
+        res.json({ message: "Successfully left the room", room });
+    } catch (error) {
+        console.error("Error leaving room:", error);
+        res.status(500).json({ error: "Failed to leave room" });
     }
-
-    const room = await Room.findById(roomId);
-    if (!room) {
-      return res.status(404).json({ error: "Room not found" });
-    }
-
-    // Check if user is in the room
-    const wasParticipant = room.participants.some((p) => p.puuid === puuid);
-    if (!wasParticipant) {
-      return res.status(400).json({ error: "You are not in this room" });
-    }
-
-    // Remove the participant
-    room.participants = room.participants.filter((p) => p.puuid !== puuid);
-    await room.save();
-
-    const io = req.app.get("io");
-    io.emit("roomUpdated");
-
-    res.json({ message: "Successfully left the room", room });
-  } catch (error) {
-    console.error("Error leaving room:", error);
-    res.status(500).json({ error: "Failed to leave room" });
-  }
 });
-
-
-
 
 module.exports = router;
