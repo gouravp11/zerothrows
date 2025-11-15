@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Button from "../components/Button";
-const backendUrl = import.meta.env.VITE_BACKEND_URL;
+import { BACKEND_URL } from "../config";
 
 const LoginPage = ({ onLogin }) => {
     const users = ["demo", "alt", "bot", "alpha", "bravo", "charlie", "barley"];
@@ -10,7 +10,7 @@ const LoginPage = ({ onLogin }) => {
     const handleLogin = async () => {
         try {
             setLoading(true);
-            const res = await fetch(`${backendUrl}/auth/mock-login/${selected}`);
+            const res = await fetch(`${BACKEND_URL}/auth/mock-login/${selected}`);
             const user = await res.json();
             localStorage.setItem("user", JSON.stringify(user));
             onLogin();

@@ -9,20 +9,22 @@ const roomRoutes = require("./routes/room");
 const Room = require("./models/RoomModel");
 
 dotenv.config();
+const PORT = process.env.PORT ?? 8080;
+const FRONTEND_URL =
+    process.env.FRONTEND_URL ?? (process.env.NODE_ENV === "production" ? false : true);
 
 const app = express();
 const server = http.createServer(app); // Create HTTP server for Socket.io
-
 const io = new Server(server, {
     cors: {
-        origin: [`${process.env.FRONTEND_URL}`], // Frontend origin
+        origin: [FRONTEND_URL], // Frontend origin
         methods: ["GET", "POST"]
     }
 });
 app.set("io", io);
 
 const corsOptions = {
-    origin: [`${process.env.FRONTEND_URL}`]
+    origin: [FRONTEND_URL]
 };
 app.use(cors(corsOptions));
 app.use(express.json());
@@ -77,7 +79,6 @@ io.on("connection", (socket) => {
     });
 });
 
-const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
     console.log("Server is listening on port", PORT);
 });

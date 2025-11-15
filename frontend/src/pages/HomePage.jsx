@@ -6,7 +6,7 @@ import CreateRoomForm from "../components/CreateRoomForm";
 import RoomCard from "../components/RoomCard";
 import ChatInterface from "../components/ChatInterface";
 import socket from "../utils/socket";
-const backendUrl = import.meta.env.VITE_BACKEND_URL;
+import { BACKEND_URL } from "../config";
 
 const HomePage = ({ onLogout }) => {
     const [showCreateForm, setShowCreateForm] = useState(false);
@@ -40,7 +40,7 @@ const HomePage = ({ onLogout }) => {
             const currentUser = JSON.parse(localStorage.getItem("user"));
             socket.emit("requestLeaveRoom", roomId);
 
-            const res = await fetch(`${backendUrl}/api/rooms/delete/${roomId}`, {
+            const res = await fetch(`${BACKEND_URL}/api/rooms/delete/${roomId}`, {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -73,7 +73,7 @@ const HomePage = ({ onLogout }) => {
                 return;
             }
 
-            const res = await fetch(`${backendUrl}/api/rooms/join/${roomId}`, {
+            const res = await fetch(`${BACKEND_URL}/api/rooms/join/${roomId}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -124,7 +124,7 @@ const HomePage = ({ onLogout }) => {
                 return;
             }
 
-            const res = await fetch(`${backendUrl}/api/rooms`, {
+            const res = await fetch(`${BACKEND_URL}/api/rooms`, {
                 headers: {
                     "X-User-Puuid": currentUser.puuid
                 }
@@ -159,7 +159,7 @@ const HomePage = ({ onLogout }) => {
                 return;
             }
 
-            const res = await fetch(`${backendUrl}/api/rooms`, {
+            const res = await fetch(`${BACKEND_URL}/api/rooms`, {
                 headers: {
                     "X-User-Puuid": currentUser.puuid
                 }
@@ -181,7 +181,7 @@ const HomePage = ({ onLogout }) => {
         const currentUser = JSON.parse(localStorage.getItem("user"));
 
         try {
-            const res = await fetch(`${backendUrl}/api/rooms/leave/${roomId}`, {
+            const res = await fetch(`${BACKEND_URL}/api/rooms/leave/${roomId}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"

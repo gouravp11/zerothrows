@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import socket from "../utils/socket";
 import Button from "./Button";
-const backendUrl = import.meta.env.VITE_BACKEND_URL;
+import { BACKEND_URL } from "../config";
 
 const ChatInterface = ({ room, onLeaveRoom }) => {
     const [messages, setMessages] = useState([]);
@@ -15,7 +15,7 @@ const ChatInterface = ({ room, onLeaveRoom }) => {
     useEffect(() => {
         const fetchMessages = async () => {
             try {
-                const res = await fetch(`${backendUrl}/api/rooms/${room._id}/messages`);
+                const res = await fetch(`${BACKEND_URL}/api/rooms/${room._id}/messages`);
                 const data = await res.json();
                 if (data.success && Array.isArray(data.messages)) {
                     setMessages(data.messages);

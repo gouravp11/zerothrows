@@ -1,5 +1,5 @@
 // socket.js
 import { io } from "socket.io-client";
-const backendUrl = import.meta.env.VITE_BACKEND_URL;
-const socket = io(`${backendUrl}`);
+import { BACKEND_URL } from "../config";
+const socket = io(BACKEND_URL);
 export default socket;

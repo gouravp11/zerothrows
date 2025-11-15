@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Button from "./Button";
-const backendUrl = import.meta.env.VITE_BACKEND_URL;
+import { BACKEND_URL } from "../config";
 
 const CreateRoomForm = ({ onCreate }) => {
     const [roomName, setRoomName] = useState("");
@@ -32,7 +32,7 @@ const CreateRoomForm = ({ onCreate }) => {
         };
 
         try {
-            const res = await fetch(`${backendUrl}/api/rooms/create`, {
+            const res = await fetch(`${BACKEND_URL}/api/rooms/create`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(newRoom)
