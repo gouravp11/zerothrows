@@ -1,30 +1,23 @@
 import { useState, useEffect } from "react";
 import Button from "../components/Button";
-import ProfileIcon from "../components/ProfileIcon";
 import Modal from "../components/Modal";
 import CreateRoomForm from "../components/CreateRoomForm";
 import RoomCard from "../components/RoomCard";
 import ChatInterface from "../components/ChatInterface";
 import socket from "../utils/socket";
 import { BACKEND_URL } from "../config";
+import Navbar from "../sections/Navbar";
 
 const HomePage = ({ onLogout }) => {
-    const [showCreateForm, setShowCreateForm] = useState(false);
+    const currentUser = JSON.parse(localStorage.getItem("user"));
+
     const [rooms, setRooms] = useState([]);
+    const [showCreateForm, setShowCreateForm] = useState(false);
     const [regionFilter, setRegionFilter] = useState("ALL");
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [activeRoom, setActiveRoom] = useState(null);
 
-    const user = JSON.parse(localStorage.getItem("user"));
-
-    const handleLogout = () => {
-        localStorage.removeItem("user");
-        onLogout();
-    };
-
     const handleCreateRoom = (roomData) => {
-        const currentUser = JSON.parse(localStorage.getItem("user"));
-        // console.log("Room created:", roomData);
         setShowCreateForm(false);
         fetchRooms();
         socket.emit("joinRoom", roomData._id);
@@ -37,7 +30,6 @@ const HomePage = ({ onLogout }) => {
 
     const handleDeleteRoom = async (roomId) => {
         try {
-            const currentUser = JSON.parse(localStorage.getItem("user"));
             socket.emit("requestLeaveRoom", roomId);
 
             const res = await fetch(`${BACKEND_URL}/api/rooms/delete/${roomId}`, {
@@ -66,8 +58,6 @@ const HomePage = ({ onLogout }) => {
 
     const handleJoinRoom = async (roomId) => {
         try {
-            const currentUser = JSON.parse(localStorage.getItem("user"));
-
             if (!currentUser) {
                 alert("You must be logged in to join a room.");
                 return;
@@ -110,18 +100,11 @@ const HomePage = ({ onLogout }) => {
         setIsChatOpen(true);
     };
 
-    const currentUserPuuid = JSON.parse(localStorage.getItem("user")).puuid;
-    const isInAnyRoom = rooms.some((room) =>
-        room.participants?.some((p) => p.puuid === currentUserPuuid)
-    );
-
-    const fetchRoomsAndJoin = async () => {
+    const fetchRooms = async () => {
         try {
-            const currentUser = JSON.parse(localStorage.getItem("user"));
-
             if (!currentUser) {
                 console.error("User not logged in");
-                return;
+                return [];
             }
 
             const res = await fetch(`${BACKEND_URL}/api/rooms`, {
@@ -133,53 +116,33 @@ const HomePage = ({ onLogout }) => {
             if (res.ok) {
                 const data = await res.json();
                 setRooms(data);
-
-                const joinedRoom = data.find((room) =>
-                    room.participants?.some((p) => p.puuid === currentUser.puuid)
-                );
-
-                if (joinedRoom) {
-                    socket.emit("joinRoom", joinedRoom._id);
-                }
+                return data;
             } else {
                 const errorData = await res.json();
                 console.error(errorData.error || "Failed to fetch rooms");
+                return [];
             }
         } catch (error) {
             console.error("Failed to fetch rooms:", error);
+            return [];
         }
     };
 
-    const fetchRooms = async () => {
-        try {
-            const currentUser = JSON.parse(localStorage.getItem("user"));
+    const fetchRoomsAndJoin = async () => {
+        const rooms = await fetchRooms();
 
-            if (!currentUser) {
-                console.error("User not logged in");
-                return;
-            }
+        if (!rooms.length) return;
 
-            const res = await fetch(`${BACKEND_URL}/api/rooms`, {
-                headers: {
-                    "X-User-Puuid": currentUser.puuid
-                }
-            });
+        const joinedRoom = rooms.find((room) =>
+            room.participants?.some((p) => p.puuid === currentUser?.puuid)
+        );
 
-            if (res.ok) {
-                const data = await res.json();
-                setRooms(data);
-            } else {
-                const errorData = await res.json();
-                console.error(errorData.error || "Failed to fetch rooms");
-            }
-        } catch (error) {
-            console.error("Failed to fetch rooms:", error);
+        if (joinedRoom) {
+            socket.emit("joinRoom", joinedRoom._id);
         }
     };
 
     const handleLeaveRoom = async (roomId) => {
-        const currentUser = JSON.parse(localStorage.getItem("user"));
-
         try {
             const res = await fetch(`${BACKEND_URL}/api/rooms/leave/${roomId}`, {
                 method: "POST",
@@ -207,6 +170,25 @@ const HomePage = ({ onLogout }) => {
         }
     };
 
+    const isInAnyRoom = rooms.some((room) =>
+        room.participants?.some((p) => p.puuid === currentUser.puuid)
+    );
+
+    const myRoom = rooms.filter((room) => room.createdBy?.puuid === currentUser.puuid)[0];
+
+    const joinedRoom = rooms.find(
+        (room) =>
+            room.createdBy?.puuid !== currentUser.puuid &&
+            room.participants?.some((p) => p.puuid === currentUser.puuid)
+    );
+
+    const otherRooms = rooms.filter(
+        (room) =>
+            room._id !== joinedRoom?._id &&
+            room.createdBy?.puuid !== currentUser.puuid &&
+            (regionFilter === "ALL" || room.region === regionFilter)
+    );
+
     useEffect(() => {
         fetchRoomsAndJoin();
         socket.on("roomUpdated", () => {
@@ -218,45 +200,17 @@ const HomePage = ({ onLogout }) => {
         };
     }, []);
 
-    const myRoom = rooms.filter((room) => room.createdBy?.puuid === user.puuid)[0];
-
-    const joinedRoom = rooms.find(
-        (room) =>
-            room.createdBy?.puuid !== user.puuid &&
-            room.participants?.some((p) => p.puuid === user.puuid)
-    );
-
-    const otherRooms = rooms.filter(
-        (room) =>
-            room._id !== joinedRoom?._id &&
-            room.createdBy?.puuid !== user.puuid &&
-            (regionFilter === "ALL" || room.region === regionFilter)
-    );
-
     return (
         <>
-            <div className="flex items-center justify-between bg-white shadow-md px-6 py-4">
-                <h1 className="text-2xl font-extrabold text-green-600">ZeroThrows</h1>
-                <div className="flex items-center gap-4">
-                    <Button
-                        onClick={handleLogout}
-                        className="bg-red-500 hover:bg-red-600 transition text-white px-4 py-2 rounded-md cursor-pointer"
-                    >
-                        Logout
-                    </Button>
-                    <ProfileIcon player={user} />
-                </div>
-            </div>
+            <Navbar onLogout={onLogout} user={currentUser} />
 
             <div className="px-4 py-6 max-w-4xl mx-auto space-y-12">
-                <div className="flex justify-center">
-                    <Button
-                        onClick={() => setShowCreateForm(true)}
-                        className="text-xl font-medium bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded shadow cursor-pointer"
-                    >
-                        + Create Room
-                    </Button>
-                </div>
+                <Button
+                    onClick={() => setShowCreateForm(true)}
+                    className="text-xl font-medium bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded shadow cursor-pointer"
+                >
+                    + Create Room
+                </Button>
 
                 {showCreateForm && (
                     <Modal onClose={() => setShowCreateForm(false)}>
@@ -275,7 +229,7 @@ const HomePage = ({ onLogout }) => {
                             onJoin={handleJoinRoom}
                             onGoChat={handleGoChat}
                             isInAnyRoom={isInAnyRoom}
-                            currentUserPuuid={currentUserPuuid}
+                            currentUserPuuid={currentUser.puuid}
                         />
                     ) : (
                         <p className="text-gray-500">You haven’t created any rooms yet.</p>
@@ -292,13 +246,12 @@ const HomePage = ({ onLogout }) => {
                             onGoChat={handleGoChat}
                             isInAnyRoom={isInAnyRoom}
                             onForceClose={() => setIsChatOpen(false)}
-                            currentUserPuuid={currentUserPuuid}
+                            currentUserPuuid={currentUser.puuid}
                         />
                     ) : (
                         <p className="text-gray-500">You haven’t joined any room yet.</p>
                     )}
                 </section>
-
                 <section>
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="text-2xl font-semibold">Browse Rooms</h2>
@@ -325,7 +278,7 @@ const HomePage = ({ onLogout }) => {
                                 onGoChat={handleGoChat}
                                 isInAnyRoom={isInAnyRoom}
                                 onForceClose={() => setIsChatOpen(false)}
-                                currentUserPuuid={currentUserPuuid}
+                                currentUserPuuid={currentUser.puuid}
                             />
                         ))
                     ) : (
