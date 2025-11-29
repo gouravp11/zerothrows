@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import Button from "../components/Button";
-import Modal from "../components/Modal";
-import CreateRoomForm from "../components/CreateRoomForm";
-import RoomCard from "../components/RoomCard";
-import ChatInterface from "../components/ChatInterface";
 import socket from "../utils/socket";
 import { BACKEND_URL } from "../config";
 import Navbar from "../sections/Navbar";
+import CreateRoom from "../sections/CreateRoom";
+import MyRoom from "../sections/MyRoom";
+import JoinedRoom from "../sections/JoinedRoom";
+import BrowseRooms from "../sections/BrowseRooms";
+import Chat from "../overlays/Chat";
 
 const HomePage = ({ onLogout }) => {
     const currentUser = JSON.parse(localStorage.getItem("user"));
@@ -16,45 +16,6 @@ const HomePage = ({ onLogout }) => {
     const [regionFilter, setRegionFilter] = useState("ALL");
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [activeRoom, setActiveRoom] = useState(null);
-
-    const handleCreateRoom = (roomData) => {
-        setShowCreateForm(false);
-        fetchRooms();
-        socket.emit("joinRoom", roomData._id);
-        socket.emit("chatMessage", {
-            roomId: roomData._id,
-            sender: "System",
-            message: `${currentUser.riotId.gameName} joined the room`
-        });
-    };
-
-    const handleDeleteRoom = async (roomId) => {
-        try {
-            socket.emit("requestLeaveRoom", roomId);
-
-            const res = await fetch(`${BACKEND_URL}/api/rooms/delete/${roomId}`, {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    createdBy: {
-                        gameName: currentUser.riotId.gameName,
-                        tagLine: currentUser.riotId.tagLine,
-                        puuid: currentUser.puuid
-                    }
-                })
-            });
-
-            if (res.ok) {
-                // console.log("Room deleted:", roomId);
-                await fetchRooms();
-            } else {
-                const errorData = await res.json();
-                alert(errorData.error || "Failed to delete room");
-            }
-        } catch (error) {
-            console.error("Failed to delete room:", error);
-        }
-    };
 
     const handleJoinRoom = async (roomId) => {
         try {
@@ -94,6 +55,34 @@ const HomePage = ({ onLogout }) => {
         }
     };
 
+    const handleLeaveRoom = async (roomId) => {
+        try {
+            const res = await fetch(`${BACKEND_URL}/api/rooms/leave/${roomId}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ puuid: currentUser.puuid })
+            });
+
+            if (res.ok) {
+                setIsChatOpen(false);
+                await fetchRooms();
+                socket.emit("chatMessage", {
+                    roomId,
+                    sender: "System",
+                    message: `${currentUser.riotId.gameName} left the room`
+                });
+                socket.emit("leaveRoom", roomId);
+            } else {
+                const err = await res.json();
+                alert(err.error || "Failed to leave room");
+            }
+        } catch (err) {
+            console.error("Error leaving room:", err);
+        }
+    };
+
     const handleGoChat = (roomId) => {
         const selectedRoom = rooms.find((r) => r._id === roomId);
         setActiveRoom(selectedRoom);
@@ -130,6 +119,7 @@ const HomePage = ({ onLogout }) => {
 
     const fetchRoomsAndJoin = async () => {
         const rooms = await fetchRooms();
+        console.log(rooms);
 
         if (!rooms.length) return;
 
@@ -139,34 +129,6 @@ const HomePage = ({ onLogout }) => {
 
         if (joinedRoom) {
             socket.emit("joinRoom", joinedRoom._id);
-        }
-    };
-
-    const handleLeaveRoom = async (roomId) => {
-        try {
-            const res = await fetch(`${BACKEND_URL}/api/rooms/leave/${roomId}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ puuid: currentUser.puuid })
-            });
-
-            if (res.ok) {
-                setIsChatOpen(false);
-                await fetchRooms();
-                socket.emit("chatMessage", {
-                    roomId,
-                    sender: "System",
-                    message: `${currentUser.riotId.gameName} left the room`
-                });
-                socket.emit("leaveRoom", roomId);
-            } else {
-                const err = await res.json();
-                alert(err.error || "Failed to leave room");
-            }
-        } catch (err) {
-            console.error("Error leaving room:", err);
         }
     };
 
@@ -184,13 +146,14 @@ const HomePage = ({ onLogout }) => {
 
     const otherRooms = rooms.filter(
         (room) =>
-            room._id !== joinedRoom?._id &&
             room.createdBy?.puuid !== currentUser.puuid &&
+            room._id !== joinedRoom?._id &&
             (regionFilter === "ALL" || room.region === regionFilter)
     );
 
     useEffect(() => {
         fetchRoomsAndJoin();
+        fetchRooms();
         socket.on("roomUpdated", () => {
             fetchRooms();
         });
@@ -205,92 +168,46 @@ const HomePage = ({ onLogout }) => {
             <Navbar onLogout={onLogout} user={currentUser} />
 
             <div className="px-4 py-6 max-w-4xl mx-auto space-y-12">
-                <Button
-                    onClick={() => setShowCreateForm(true)}
-                    className="text-xl font-medium bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded shadow cursor-pointer"
-                >
-                    + Create Room
-                </Button>
+                <CreateRoom
+                    showCreateForm={showCreateForm}
+                    setShowCreateForm={setShowCreateForm}
+                    fetchRooms={fetchRooms}
+                />
 
-                {showCreateForm && (
-                    <Modal onClose={() => setShowCreateForm(false)}>
-                        <CreateRoomForm onCreate={handleCreateRoom} />
-                    </Modal>
-                )}
+                <MyRoom
+                    myRoom={myRoom}
+                    handleJoinRoom={handleJoinRoom}
+                    handleGoChat={handleGoChat}
+                    isInAnyRoom={isInAnyRoom}
+                    currentUser={currentUser}
+                />
 
-                <section>
-                    <h2 className="text-2xl font-semibold mb-2">My Room</h2>
-                    {myRoom ? (
-                        <RoomCard
-                            key={myRoom._id}
-                            room={myRoom}
-                            isOwnRoom={true}
-                            onDelete={handleDeleteRoom}
-                            onJoin={handleJoinRoom}
-                            onGoChat={handleGoChat}
-                            isInAnyRoom={isInAnyRoom}
-                            currentUserPuuid={currentUser.puuid}
-                        />
-                    ) : (
-                        <p className="text-gray-500">You haven’t created any rooms yet.</p>
-                    )}
-                </section>
+                <JoinedRoom
+                    joinedRoom={joinedRoom}
+                    handleGoChat={handleGoChat}
+                    handleLeaveRoom={handleLeaveRoom}
+                    isInAnyRoom={isInAnyRoom}
+                    setIsChatOpen={setIsChatOpen}
+                    currentUser={currentUser}
+                />
 
-                <section>
-                    <h2 className="text-2xl font-semibold mb-2">Joined Room</h2>
-                    {joinedRoom ? (
-                        <RoomCard
-                            room={joinedRoom}
-                            isOwnRoom={false}
-                            onLeave={handleLeaveRoom}
-                            onGoChat={handleGoChat}
-                            isInAnyRoom={isInAnyRoom}
-                            onForceClose={() => setIsChatOpen(false)}
-                            currentUserPuuid={currentUser.puuid}
-                        />
-                    ) : (
-                        <p className="text-gray-500">You haven’t joined any room yet.</p>
-                    )}
-                </section>
-                <section>
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-2xl font-semibold">Browse Rooms</h2>
-                        <select
-                            className="px-3 py-2 border border-gray-300 rounded-md"
-                            value={regionFilter}
-                            onChange={(e) => setRegionFilter(e.target.value)}
-                        >
-                            <option value="ALL">All Regions</option>
-                            <option value="NA">NA</option>
-                            <option value="EMEA">EMEA</option>
-                            <option value="APAC">APAC</option>
-                            <option value="CN">CN</option>
-                        </select>
-                    </div>
-                    {otherRooms.length > 0 ? (
-                        otherRooms.map((room) => (
-                            <RoomCard
-                                key={room._id}
-                                room={room}
-                                isOwnRoom={false}
-                                onJoin={handleJoinRoom}
-                                onLeave={handleLeaveRoom}
-                                onGoChat={handleGoChat}
-                                isInAnyRoom={isInAnyRoom}
-                                onForceClose={() => setIsChatOpen(false)}
-                                currentUserPuuid={currentUser.puuid}
-                            />
-                        ))
-                    ) : (
-                        <p className="text-gray-500">No rooms found in this region.</p>
-                    )}
-                </section>
+                <BrowseRooms
+                    otherRooms={otherRooms}
+                    regionFilter={regionFilter}
+                    setRegionFilter={setRegionFilter}
+                    handleJoinRoom={handleJoinRoom}
+                    handleGoChat={handleGoChat}
+                    isInAnyRoom={isInAnyRoom}
+                    setIsChatOpen={setIsChatOpen}
+                    currentUser={currentUser}
+                />
 
-                {isChatOpen && activeRoom && (
-                    <Modal onClose={() => setIsChatOpen(false)}>
-                        <ChatInterface room={activeRoom} onLeaveRoom={handleLeaveRoom} />
-                    </Modal>
-                )}
+                <Chat
+                    isChatOpen={isChatOpen}
+                    activeRoom={activeRoom}
+                    setIsChatOpen={setIsChatOpen}
+                    handleLeaveRoom={handleLeaveRoom}
+                />
             </div>
         </>
     );
