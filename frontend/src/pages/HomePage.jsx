@@ -153,13 +153,15 @@ const HomePage = ({ onLogout }) => {
 
     useEffect(() => {
         fetchRoomsAndJoin();
-        fetchRooms();
         socket.on("roomUpdated", () => {
             fetchRooms();
+            // the re-render due to fetchRooms-->state change, WON'T do nothing to socket connection
+            // therefore all joins of the rooms remain same, Even on "roomUpdated" event
         });
 
         return () => {
             socket.off("roomUpdated");
+            // runs when homepage unmounts, reloads etc (Basically focused out)
         };
     }, []);
 
