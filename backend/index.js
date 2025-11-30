@@ -4,7 +4,7 @@ const { Server } = require("socket.io");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("./db");
-const authRoutes = require("./routes/auth");
+const mockRoutes = require("./mock/routes/mock");
 const roomRoutes = require("./routes/room");
 const Room = require("./models/RoomModel");
 
@@ -31,7 +31,7 @@ app.use(express.json());
 
 connectDB();
 
-app.use("/auth", authRoutes);
+app.use("/mock", mockRoutes);
 app.use("/api/rooms", roomRoutes);
 app.get("/health", (req, res) => res.sendStatus(200)); // A route to keep backend warm (Avoiding serverless cold-start)
 
