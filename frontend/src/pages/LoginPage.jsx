@@ -10,7 +10,7 @@ const LoginPage = ({ onLogin }) => {
     const handleLogin = async () => {
         try {
             setLoading(true);
-            const res = await fetch(`${BACKEND_URL}/auth/mock-login/${selected}`);
+            const res = await fetch(`${BACKEND_URL}/mock/mock-login/${selected}`);
             const user = await res.json();
             localStorage.setItem("user", JSON.stringify(user));
             onLogin();
