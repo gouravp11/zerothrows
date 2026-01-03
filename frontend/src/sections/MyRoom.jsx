@@ -1,6 +1,5 @@
-import React from "react";
 import RoomCard from "../components/RoomCard";
-import socket from "../utils/socket";
+import socket from "../sockets/socket";
 import { deleteRoom } from "../api/room";
 
 const MyRoom = ({ myRoom, handleJoinRoom, handleGoChat, isInAnyRoom, currentUser }) => {
@@ -14,7 +13,7 @@ const MyRoom = ({ myRoom, handleJoinRoom, handleGoChat, isInAnyRoom, currentUser
                 puuid: currentUser.puuid
             };
 
-            const res = await deleteRoom(createdBy);
+            const res = await deleteRoom(createdBy, roomId);
             if (res.ok) {
                 // console.log("Room deleted:", roomId);
                 await fetchRooms();

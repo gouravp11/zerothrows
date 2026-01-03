@@ -36,7 +36,7 @@ export const createRoom = async (roomData) => {
     });
     return res;
 };
-export const deleteRoom = async (createdBy) => {
+export const deleteRoom = async (createdBy, roomId) => {
     const res = await fetch(`${BACKEND_URL}/api/rooms/delete/${roomId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
