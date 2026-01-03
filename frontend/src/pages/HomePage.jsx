@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import socket from "../utils/socket";
-import { BACKEND_URL } from "../config";
 import Navbar from "../sections/Navbar";
 import CreateRoom from "../sections/CreateRoom";
 import MyRoom from "../sections/MyRoom";
 import JoinedRoom from "../sections/JoinedRoom";
 import BrowseRooms from "../sections/BrowseRooms";
 import Chat from "../overlays/Chat";
+import { fetchAllRooms, joinRoom, leaveRoom } from "../api/room";
 
 const HomePage = ({ onLogout }) => {
     const currentUser = JSON.parse(localStorage.getItem("user"));
@@ -23,19 +23,12 @@ const HomePage = ({ onLogout }) => {
                 alert("You must be logged in to join a room.");
                 return;
             }
-
-            const res = await fetch(`${BACKEND_URL}/api/rooms/join/${roomId}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    participant: {
-                        gameName: currentUser.riotId.gameName,
-                        tagLine: currentUser.riotId.tagLine,
-                        puuid: currentUser.puuid
-                    }
-                })
-            });
-
+            const participant = {
+                gameName: currentUser.riotId.gameName,
+                tagLine: currentUser.tagLine,
+                puuid: currentUser.puuid
+            };
+            const res = await joinRoom(roomId, participant);
             if (res.ok) {
                 const updatedRoom = await res.json();
                 // console.log("Joined room successfully:", updatedRoom);
@@ -57,14 +50,7 @@ const HomePage = ({ onLogout }) => {
 
     const handleLeaveRoom = async (roomId) => {
         try {
-            const res = await fetch(`${BACKEND_URL}/api/rooms/leave/${roomId}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ puuid: currentUser.puuid })
-            });
-
+            const res = await leaveRoom(roomId, currentUser.puuid);
             if (res.ok) {
                 setIsChatOpen(false);
                 await fetchRooms();
@@ -96,12 +82,7 @@ const HomePage = ({ onLogout }) => {
                 return [];
             }
 
-            const res = await fetch(`${BACKEND_URL}/api/rooms`, {
-                headers: {
-                    "X-User-Puuid": currentUser.puuid
-                }
-            });
-
+            const res = await fetchAllRooms(currentUser.puuid);
             if (res.ok) {
                 const data = await res.json();
                 setRooms(data);

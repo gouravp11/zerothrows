@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Button from "../components/Button";
-import { BACKEND_URL } from "../config";
+import { getMockUser } from "../api/mock";
 
 const LoginPage = ({ onLogin }) => {
     const users = ["demo", "alt", "bot", "alpha", "bravo", "charlie", "barley"];
@@ -10,7 +10,7 @@ const LoginPage = ({ onLogin }) => {
     const handleLogin = async () => {
         try {
             setLoading(true);
-            const res = await fetch(`${BACKEND_URL}/mock/mock-login/${selected}`);
+            const res = await getMockUser(selected);
             const user = await res.json();
             localStorage.setItem("user", JSON.stringify(user));
             onLogin();

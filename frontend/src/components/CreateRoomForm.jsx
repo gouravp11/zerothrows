@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Button from "./Button";
-import { BACKEND_URL } from "../config";
+import { createRoom } from "../api/room";
 
 const CreateRoomForm = ({ onCreate }) => {
     const [roomName, setRoomName] = useState("");
@@ -32,11 +32,7 @@ const CreateRoomForm = ({ onCreate }) => {
         };
 
         try {
-            const res = await fetch(`${BACKEND_URL}/api/rooms/create`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(newRoom)
-            });
+            const res = await createRoom(newRoom);
 
             if (res.ok) {
                 const savedRoom = await res.json();

@@ -1,25 +1,20 @@
 import React from "react";
 import RoomCard from "../components/RoomCard";
 import socket from "../utils/socket";
-import { BACKEND_URL } from "../config";
+import { deleteRoom } from "../api/room";
 
 const MyRoom = ({ myRoom, handleJoinRoom, handleGoChat, isInAnyRoom, currentUser }) => {
     const handleDeleteRoom = async (roomId) => {
         try {
             socket.emit("requestLeaveRoom", roomId);
 
-            const res = await fetch(`${BACKEND_URL}/api/rooms/delete/${roomId}`, {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    createdBy: {
-                        gameName: currentUser.riotId.gameName,
-                        tagLine: currentUser.riotId.tagLine,
-                        puuid: currentUser.puuid
-                    }
-                })
-            });
+            const createdBy = {
+                gameName: currentUser.riotId.gameName,
+                tagLine: currentUser.tagLine,
+                puuid: currentUser.puuid
+            };
 
+            const res = await deleteRoom(createdBy);
             if (res.ok) {
                 // console.log("Room deleted:", roomId);
                 await fetchRooms();
