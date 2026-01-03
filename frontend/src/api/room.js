@@ -28,3 +28,25 @@ export const leaveRoom = async (roomId, puuid) => {
     });
     return res;
 };
+export const createRoom = async (roomData) => {
+    const res = await fetch(`${BACKEND_URL}/api/rooms/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(roomData)
+    });
+    return res;
+};
+export const deleteRoom = async (createdBy) => {
+    const res = await fetch(`${BACKEND_URL}/api/rooms/delete/${roomId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            createdBy
+        })
+    });
+    return res;
+};
+export const getRoomMessages = async (roomId) => {
+    const res = await fetch(`${BACKEND_URL}/api/rooms/${roomId}/messages`);
+    return res;
+};
