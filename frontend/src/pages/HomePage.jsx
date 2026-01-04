@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import socket from "../utils/socket";
 import Navbar from "../sections/Navbar";
 import CreateRoom from "../sections/CreateRoom";
 import MyRoom from "../sections/MyRoom";
@@ -7,6 +6,8 @@ import JoinedRoom from "../sections/JoinedRoom";
 import BrowseRooms from "../sections/BrowseRooms";
 import Chat from "../overlays/Chat";
 import { fetchAllRooms, joinRoom, leaveRoom } from "../api/room";
+import { emitChatMessage, emitJoinRoom, emitLeaveRoom } from "../sockets/room.emits";
+import { listenRoomUpdates } from "../sockets/room.listeners";
 
 const HomePage = ({ onLogout }) => {
     const currentUser = JSON.parse(localStorage.getItem("user"));
@@ -33,12 +34,8 @@ const HomePage = ({ onLogout }) => {
                 const updatedRoom = await res.json();
                 // console.log("Joined room successfully:", updatedRoom);
                 await fetchRooms();
-                socket.emit("joinRoom", roomId);
-                socket.emit("chatMessage", {
-                    roomId,
-                    sender: "System",
-                    message: `${currentUser.riotId.gameName} joined the room`
-                });
+                emitJoinRoom(roomId);
+                emitChatMessage(roomId, "System", `${currentUser.riotId.gameName} joined the room`);
             } else {
                 const errorData = await res.json();
                 alert(errorData.error || "Failed to join room");
@@ -54,12 +51,8 @@ const HomePage = ({ onLogout }) => {
             if (res.ok) {
                 setIsChatOpen(false);
                 await fetchRooms();
-                socket.emit("chatMessage", {
-                    roomId,
-                    sender: "System",
-                    message: `${currentUser.riotId.gameName} left the room`
-                });
-                socket.emit("leaveRoom", roomId);
+                emitChatMessage(roomId, "System", `${currentUser.riotId.gameName} left the room`);
+                emitLeaveRoom(roomId);
             } else {
                 const err = await res.json();
                 alert(err.error || "Failed to leave room");
@@ -109,7 +102,7 @@ const HomePage = ({ onLogout }) => {
         );
 
         if (joinedRoom) {
-            socket.emit("joinRoom", joinedRoom._id);
+            emitJoinRoom(joinedRoom._id);
         }
     };
 
@@ -134,14 +127,10 @@ const HomePage = ({ onLogout }) => {
 
     useEffect(() => {
         fetchRoomsAndJoin();
-        socket.on("roomUpdated", () => {
-            fetchRooms();
-            // the re-render due to fetchRooms-->state change, WON'T do nothing to socket connection
-            // therefore all joins of the rooms remain same, Even on "roomUpdated" event
-        });
+        const stopListenRoomUpdates = listenRoomUpdates(fetchRooms);
 
         return () => {
-            socket.off("roomUpdated");
+            stopListenRoomUpdates();
             // runs when homepage unmounts, reloads etc (Basically focused out)
         };
     }, []);

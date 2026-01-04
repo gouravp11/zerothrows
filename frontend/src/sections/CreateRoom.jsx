@@ -1,5 +1,3 @@
-import React from "react";
-import socket from "../utils/socket";
 import Button from "../components/Button";
 import Modal from "../components/Modal";
 import CreateRoomForm from "../components/CreateRoomForm";
@@ -8,12 +6,8 @@ const CreateRoom = ({ showCreateForm, setShowCreateForm, fetchRooms }) => {
     const handleCreateRoom = (roomData) => {
         setShowCreateForm(false);
         fetchRooms();
-        socket.emit("joinRoom", roomData._id);
-        socket.emit("chatMessage", {
-            roomId: roomData._id,
-            sender: "System",
-            message: `${currentUser.riotId.gameName} joined the room`
-        });
+        emitJoinRoom(roomData._id);
+        emitChatMessage(roomData._id, "System", `${currentUser.riotId.gameName} joined the room`);
     };
     return (
         <>

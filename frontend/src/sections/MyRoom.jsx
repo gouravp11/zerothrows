@@ -1,11 +1,11 @@
 import RoomCard from "../components/RoomCard";
-import socket from "../sockets/socket";
 import { deleteRoom } from "../api/room";
+import { emitRequestLeaveRoom } from "../sockets/room.emits";
 
 const MyRoom = ({ myRoom, handleJoinRoom, handleGoChat, isInAnyRoom, currentUser }) => {
     const handleDeleteRoom = async (roomId) => {
         try {
-            socket.emit("requestLeaveRoom", roomId);
+            emitRequestLeaveRoom(roomId);
 
             const createdBy = {
                 gameName: currentUser.riotId.gameName,

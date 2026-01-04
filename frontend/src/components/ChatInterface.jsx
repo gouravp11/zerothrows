@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef } from "react";
-import socket from "../utils/socket";
 import Button from "./Button";
 import { getRoomMessages } from "../api/room";
+import { emitChatMessage } from "../sockets/room.emits";
+import { listenChatMessage } from "../sockets/room.listeners";
 
 const ChatInterface = ({ room, onLeaveRoom }) => {
     const [messages, setMessages] = useState([]);
@@ -31,9 +32,10 @@ const ChatInterface = ({ room, onLeaveRoom }) => {
             setMessages((prev) => [...prev, msg]);
         };
 
-        socket.on("chatMessage", handleMessage);
+        const stopListeningToChatMessages = listenChatMessage(handleMessage);
+        // listens to event "chatMessage" and returns clean up function for the same listener
         return () => {
-            socket.off("chatMessage", handleMessage);
+            stopListeningToChatMessages();
         };
     }, [room._id]);
 
@@ -44,12 +46,7 @@ const ChatInterface = ({ room, onLeaveRoom }) => {
     const sendMessage = () => {
         if (!input.trim()) return;
 
-        socket.emit("chatMessage", {
-            roomId: room._id,
-            sender: senderName,
-            message: input
-        });
-
+        emitChatMessage(room._id, senderName, input);
         setInput("");
     };
 

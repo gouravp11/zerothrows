@@ -1,6 +1,7 @@
 import { useEffect } from "react";
-import socket from "../utils/socket";
 import Button from "./Button";
+import { emitLeaveRoom } from "../sockets/room.emits";
+import { listenLeaveRoomAll } from "../sockets/room.listeners";
 
 const RoomCard = ({
     room,
@@ -18,15 +19,15 @@ const RoomCard = ({
     useEffect(() => {
         const handleLeaveRoomAll = (roomId) => {
             if (roomId === room._id) {
-                socket.emit("leaveRoom", roomId);
+                emitLeaveRoom(roomId);
                 if (!isOwnRoom) {
                     alert("Room has been deleted by the owner");
                     onForceClose?.();
                 }
             }
         };
-        socket.on("leaveRoomAll", handleLeaveRoomAll);
-        return () => socket.off("leaveRoomAll", handleLeaveRoomAll);
+        const stopListenLeaveRoomAll = listenLeaveRoomAll(handleLeaveRoomAll);
+        return () => stopListenLeaveRoomAll();
     }, []);
 
     return (
