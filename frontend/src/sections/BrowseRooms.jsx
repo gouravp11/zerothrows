@@ -1,16 +1,26 @@
-import React from "react";
+import { useContext } from "react";
 import RoomCard from "../components/RoomCard";
-
+import { RoomContext } from "../context/Room";
+import { MockContext } from "../context/Mock";
+// otherRooms, handleJoinRoom, currentUser, handleGoChat, setIsChatOpen
 const BrowseRooms = ({
-    otherRooms,
     regionFilter,
     setRegionFilter,
-    handleJoinRoom,
-    handleGoChat,
     isInAnyRoom,
-    setIsChatOpen,
-    currentUser
 }) => {
+    const RoomContextValue = useContext(RoomContext);
+    const {rooms, joinedRoom} = RoomContextValue;
+
+    const MockContextValue = useContext(MockContext);
+    const { currentUser } = MockContextValue;
+
+    const otherRooms = rooms.filter(
+        (room) =>
+            room.createdBy?.puuid !== currentUser.puuid &&
+            room._id !== joinedRoom?._id &&
+            (regionFilter === "ALL" || room.region === regionFilter)
+    );
+
     return (
         <section>
             <div className="flex items-center justify-between mb-4">
@@ -33,11 +43,7 @@ const BrowseRooms = ({
                         key={room._id}
                         room={room}
                         isOwnRoom={false}
-                        onJoin={handleJoinRoom}
-                        onGoChat={handleGoChat}
                         isInAnyRoom={isInAnyRoom}
-                        onForceClose={() => setIsChatOpen(false)}
-                        currentUserPuuid={currentUser.puuid}
                     />
                 ))
             ) : (

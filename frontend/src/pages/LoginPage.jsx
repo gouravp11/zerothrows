@@ -1,19 +1,17 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import Button from "../components/Button";
-import { getMockUser } from "../api/mock";
+import { MockContext } from "../context/Mock";
 
-const LoginPage = ({ onLogin }) => {
-    const users = ["demo", "alt", "bot", "alpha", "bravo", "charlie", "barley"];
-    const [selected, setSelected] = useState("demo");
+const LoginPage = () => {
+    const MockContextValue = useContext(MockContext);
+    const {users, handleLogin} = MockContextValue;
+    const [selectedUser, setSelectedUser] = useState("demo");
     const [loading, setLoading] = useState(false);
 
-    const handleLogin = async () => {
+    const onLogin = async () => {
         try {
             setLoading(true);
-            const res = await getMockUser(selected);
-            const user = await res.json();
-            localStorage.setItem("user", JSON.stringify(user));
-            onLogin();
+            handleLogin(selectedUser);
         } catch (err) {
             console.error("Login failed:", err);
         } finally {
@@ -28,7 +26,7 @@ const LoginPage = ({ onLogin }) => {
             <label htmlFor="user">Select mock user: (Mock Riot Sign In)</label>
             <select
                 name="user"
-                onChange={(e) => setSelected(e.target.value)}
+                onChange={(e) => setSelectedUser(e.target.value)}
                 className="mb-4 px-4 py-2 rounded border border-gray-300"
                 disabled={loading}
             >
@@ -40,7 +38,7 @@ const LoginPage = ({ onLogin }) => {
             </select>
 
             <Button
-                onClick={handleLogin}
+                onClick={onLogin}
                 className="bg-indigo-600 hover:bg-indigo-700 cursor-pointer"
             >
                 Sign in with Riot (Mock)

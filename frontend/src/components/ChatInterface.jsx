@@ -1,64 +1,87 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useContext, useState, useRef } from "react";
 import Button from "./Button";
 import { getRoomMessages } from "../api/room";
 import { emitChatMessage } from "../sockets/room.emits";
 import { listenChatMessage } from "../sockets/room.listeners";
-
-const ChatInterface = ({ room, onLeaveRoom }) => {
-    const [messages, setMessages] = useState([]);
+import {RoomContext} from "../context/Room";
+import { MockContext } from "../context/Mock";
+import { MessageContext } from "../context/Message";
+// onLeaveRoom, room
+const ChatInterface = ({ setIsChatOpen }) => {
+    // const MockContextValue = useContext(MockContext);
+    // const {currentUser} = MockContextValue;
+    const RoomContextValue = useContext(RoomContext);
+    const {activeRoom, handleLeaveRoom} = RoomContextValue;
+    const MessageContextValue = useContext(MessageContext);
+    const { messages, senderName, isOwner, fetchMessages, handleSendMessage, handleChatMessage} = MessageContextValue;
+    // const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
     const messagesEndRef = useRef(null);
+    // const currentUser = JSON.parse(localStorage.getItem("user"));
+    // const senderName = currentUser?.riotId?.gameName || "Unknown";
+    // const isOwner = currentUser?.puuid === activeRoom.createdBy?.puuid;
 
-    const currentUser = JSON.parse(localStorage.getItem("user"));
-    const senderName = currentUser?.riotId?.gameName || "Unknown";
-    const isOwner = currentUser?.puuid === room.createdBy?.puuid;
+    // console.log("This is active room", activeRoom);
+
+    const onLeaveRoom = () => {
+        handleLeaveRoom(activeRoom._id);
+        setIsChatOpen(false);
+    }
+    const onChatMessage = (msg) => {
+        // msg param is passed from server's emit
+        handleChatMessage(msg);
+    }
+    const onSendMessage = () => {
+        handleSendMessage(input);
+        setInput("");
+    }
 
     useEffect(() => {
-        const fetchMessages = async () => {
-            try {
-                const res = await getRoomMessages(room._id);
-                const data = await res.json();
-                if (data.success && Array.isArray(data.messages)) {
-                    setMessages(data.messages);
-                }
-            } catch (err) {
-                console.error("Failed to load messages:", err);
-            }
-        };
+        // const fetchMessages = async () => {
+        //     try {
+        //         const res = await getRoomMessages(activeRoom._id);
+        //         const data = await res.json();
+        //         if (data.success && Array.isArray(data.messages)) {
+        //             setMessages(data.messages);
+        //         }
+        //     } catch (err) {
+        //         console.error("Failed to load messages:", err);
+        //     }
+        // };
 
         fetchMessages();
 
-        const handleMessage = (msg) => {
-            setMessages((prev) => [...prev, msg]);
-        };
+        // const handleChatMessage = (msg) => {
+        //     setMessages((prev) => [...prev, msg]);
+        // };
 
-        const stopListeningToChatMessages = listenChatMessage(handleMessage);
+        const stopListeningToChatMessages = listenChatMessage(onChatMessage);
         // listens to event "chatMessage" and returns clean up function for the same listener
         return () => {
             stopListeningToChatMessages();
         };
-    }, [room._id]);
+    }, [activeRoom._id]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
-    const sendMessage = () => {
-        if (!input.trim()) return;
+    // const handleSendMessage = () => {
+    //     if (!input.trim()) return;
 
-        emitChatMessage(room._id, senderName, input);
-        setInput("");
-    };
+    //     emitChatMessage(activeRoom._id, senderName, input);
+    //     setInput("");
+    // };
 
     return (
         <div className="flex flex-col max-w-full h-[600px] max-h-[90vh] bg-white rounded-xl overflow-hidden">
             <div className="flex items-center justify-between bg-indigo-600 text-white px-5 py-3">
                 <h2 className="text-lg font-semibold">
-                    Chat - {room.roomName} ({room.region})
+                    Chat - {activeRoom.roomName} ({activeRoom.region})
                 </h2>
                 {!isOwner && (
                     <Button
-                        onClick={() => onLeaveRoom(room._id)}
+                        onClick={() => onLeaveRoom(activeRoom._id)}
                         className="bg-red-500 hover:bg-red-600 text-white text-sm font-medium px-3 py-1 rounded cursor-pointer"
                     >
                         Leave Room
@@ -71,7 +94,7 @@ const ChatInterface = ({ room, onLeaveRoom }) => {
                     <>
                         <div className="text-gray-500 italic">System: Welcome to the chat!</div>
                         <div className="text-gray-500 italic">
-                            {room.createdBy?.gameName}: Let’s get ready!
+                            {activeRoom.createdBy?.gameName}: Let’s get ready!
                         </div>
                     </>
                 )}
@@ -102,10 +125,10 @@ const ChatInterface = ({ room, onLeaveRoom }) => {
                     className="flex-1 border border-gray-300 px-4 py-2 rounded-l-md focus:outline-none focus:ring-2 focus:ring-indigo-400"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                    onKeyDown={(e) => e.key === "Enter" && onSendMessage()}
                 />
                 <Button
-                    onClick={sendMessage}
+                    onClick={onSendMessage}
                     className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-r-md cursor-pointer"
                 >
                     Send

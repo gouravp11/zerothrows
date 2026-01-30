@@ -1,32 +1,42 @@
-import { useEffect } from "react";
+import { useContext, useEffect } from "react";
 import Button from "./Button";
-import { emitLeaveRoom } from "../sockets/room.emits";
 import { listenLeaveRoomAll } from "../sockets/room.listeners";
+import { MockContext } from "../context/Mock";
+import { RoomContext } from "../context/Room";
+// currentUserPuuid, onGoChat, onDelete, onJoin, onLeave
+// new -> setIsChatOpen
+const RoomCard = ({ room, isOwnRoom, onForceClose, isInAnyRoom, setIsChatOpen }) => {
+    const MockContextValue = useContext(MockContext);
+    const { currentUser } = MockContextValue;
+    const RoomContextValue = useContext(RoomContext);
+    const { handleGoChat, handleLeaveRoom, handleJoinRoom, handleDeleteRoom, handleLeaveRoomAll } =
+        RoomContextValue;
+    const isParticipant = room.participants?.some((p) => p.puuid === currentUser.puuid);
 
-const RoomCard = ({
-    room,
-    isOwnRoom,
-    onDelete,
-    onJoin,
-    onLeave,
-    onGoChat,
-    onForceClose,
-    currentUserPuuid,
-    isInAnyRoom
-}) => {
-    const isParticipant = room.participants?.some((p) => p.puuid === currentUserPuuid);
+    const onGoChat = (room) => {
+        setIsChatOpen(true);
+        handleGoChat(room);
+    };
+    const onLeave = (roomId) => {
+        handleLeaveRoom(roomId);
+    };
+    const onJoin = (roomId) => {
+        handleJoinRoom(roomId);
+    };
+    const onDelete = (roomId) => {
+        handleDeleteRoom(roomId);
+    };
+    const onLeaveRoomAll = (roomId) => {
+        // roomId would be passed by the server's .emit
+        handleLeaveRoomAll(roomId);
+        if (!isOwnRoom) {
+            alert("Room has been deleted by the owner");
+            onForceClose?.();
+        }
+    };
 
     useEffect(() => {
-        const handleLeaveRoomAll = (roomId) => {
-            if (roomId === room._id) {
-                emitLeaveRoom(roomId);
-                if (!isOwnRoom) {
-                    alert("Room has been deleted by the owner");
-                    onForceClose?.();
-                }
-            }
-        };
-        const stopListenLeaveRoomAll = listenLeaveRoomAll(handleLeaveRoomAll);
+        const stopListenLeaveRoomAll = listenLeaveRoomAll(onLeaveRoomAll);
         return () => stopListenLeaveRoomAll();
     }, []);
 
@@ -76,7 +86,7 @@ const RoomCard = ({
                             Delete Room
                         </Button>
                         <Button
-                            onClick={() => onGoChat(room._id)}
+                            onClick={() => onGoChat(room)}
                             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md cursor-pointer"
                         >
                             Go to Chat
@@ -85,7 +95,7 @@ const RoomCard = ({
                 ) : isParticipant ? (
                     <>
                         <Button
-                            onClick={() => onGoChat(room._id)}
+                            onClick={() => onGoChat(room)}
                             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md cursor-pointer"
                         >
                             Go to Chat
