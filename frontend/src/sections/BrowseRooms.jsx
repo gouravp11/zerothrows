@@ -3,12 +3,8 @@ import RoomCard from "../components/RoomCard";
 import { RoomContext } from "../context/Room";
 import { MockContext } from "../context/Mock";
 
-const BrowseRooms = ({
-    regionFilter,
-    setRegionFilter,
-    isInAnyRoom,
-}) => {
-    const {rooms, joinedRoom} = useContext(RoomContext);
+const BrowseRooms = ({ regionFilter, setRegionFilter, isInAnyRoom }) => {
+    const { rooms, joinedRoom } = useContext(RoomContext);
     const { currentUser } = useContext(MockContext);
 
     const otherRooms = rooms.filter(

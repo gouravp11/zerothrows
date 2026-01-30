@@ -11,9 +11,9 @@ import { MockContext } from "../context/Mock";
 import { RoomContext } from "../context/Room";
 
 const HomePage = () => {
-    const {currentUser} = useContext(MockContext);
-    const {rooms, fetchRooms} = useContext(RoomContext);
-    
+    const { currentUser } = useContext(MockContext);
+    const { rooms, fetchRooms } = useContext(RoomContext);
+
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [regionFilter, setRegionFilter] = useState("ALL");
     const [isChatOpen, setIsChatOpen] = useState(false);
@@ -52,18 +52,11 @@ const HomePage = () => {
             <Navbar />
 
             <div className="px-4 py-6 max-w-4xl mx-auto space-y-12">
-                <CreateRoom
-                    showCreateForm={showCreateForm}
-                    setShowCreateForm={setShowCreateForm}
-                />
+                <CreateRoom showCreateForm={showCreateForm} setShowCreateForm={setShowCreateForm} />
 
-                <MyRoom
-                    setIsChatOpen={setIsChatOpen}
-                />
+                <MyRoom setIsChatOpen={setIsChatOpen} />
 
-                <JoinedRoom
-                    setIsChatOpen={setIsChatOpen}
-                />
+                <JoinedRoom setIsChatOpen={setIsChatOpen} />
 
                 <BrowseRooms
                     regionFilter={regionFilter}
@@ -71,10 +64,7 @@ const HomePage = () => {
                     isInAnyRoom={isInAnyRoom}
                 />
 
-                <Chat
-                    isChatOpen={isChatOpen}
-                    setIsChatOpen={setIsChatOpen}
-                />
+                <Chat isChatOpen={isChatOpen} setIsChatOpen={setIsChatOpen} />
             </div>
         </>
     );

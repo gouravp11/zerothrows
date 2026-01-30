@@ -1,12 +1,13 @@
 import { useEffect, useContext, useState, useRef } from "react";
 import Button from "./Button";
 import { listenChatMessage } from "../sockets/room.listeners";
-import {RoomContext} from "../context/Room";
+import { RoomContext } from "../context/Room";
 import { MessageContext } from "../context/Message";
 
 const ChatInterface = ({ setIsChatOpen }) => {
-    const {activeRoom, handleLeaveRoom} = useContext(RoomContext);
-    const { messages, senderName, isOwner, fetchMessages, handleSendMessage, handleChatMessage} = useContext(MessageContext);
+    const { activeRoom, handleLeaveRoom } = useContext(RoomContext);
+    const { messages, senderName, isOwner, fetchMessages, handleSendMessage, handleChatMessage } =
+        useContext(MessageContext);
 
     const [input, setInput] = useState("");
     const messagesEndRef = useRef(null);
@@ -14,15 +15,15 @@ const ChatInterface = ({ setIsChatOpen }) => {
     const onLeaveRoom = () => {
         handleLeaveRoom(activeRoom._id);
         setIsChatOpen(false);
-    }
+    };
     const onChatMessage = (msg) => {
         // msg param is passed from server's emit
         handleChatMessage(msg);
-    }
+    };
     const onSendMessage = () => {
         handleSendMessage(input);
         setInput("");
-    }
+    };
 
     useEffect(() => {
         fetchMessages();

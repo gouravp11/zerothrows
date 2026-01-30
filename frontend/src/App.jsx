@@ -5,18 +5,12 @@ import { useContext } from "react";
 import { MockContext } from "./context/Mock";
 
 const App = () => {
-    const {isLoggedIn}= useContext(MockContext);
-    
+    const { isLoggedIn } = useContext(MockContext);
+
     return (
         <Routes key={isLoggedIn}>
-            <Route
-                path="/"
-                element={ isLoggedIn ? <HomePage /> : <Navigate to="/login" /> }
-            />
-            <Route
-                path="/login"
-                element={ !isLoggedIn ? <LoginPage /> : <Navigate to="/" /> }
-            />
+            <Route path="/" element={isLoggedIn ? <HomePage /> : <Navigate to="/login" />} />
+            <Route path="/login" element={!isLoggedIn ? <LoginPage /> : <Navigate to="/" />} />
         </Routes>
     );
 };

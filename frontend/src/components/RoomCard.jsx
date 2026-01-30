@@ -6,7 +6,8 @@ import { RoomContext } from "../context/Room";
 
 const RoomCard = ({ room, isOwnRoom, onForceClose, isInAnyRoom, setIsChatOpen }) => {
     const { currentUser } = useContext(MockContext);
-    const { handleGoChat, handleLeaveRoom, handleJoinRoom, handleDeleteRoom, handleLeaveRoomAll } = useContext(RoomContext);
+    const { handleGoChat, handleLeaveRoom, handleJoinRoom, handleDeleteRoom, handleLeaveRoomAll } =
+        useContext(RoomContext);
     const isParticipant = room.participants?.some((p) => p.puuid === currentUser.puuid);
 
     const onGoChat = (room) => {

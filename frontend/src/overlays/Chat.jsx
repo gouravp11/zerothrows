@@ -4,13 +4,13 @@ import { useContext } from "react";
 import { RoomContext } from "../context/Room";
 
 const Chat = ({ isChatOpen, setIsChatOpen }) => {
-    const {activeRoom} = useContext(RoomContext);
+    const { activeRoom } = useContext(RoomContext);
 
     return (
         <>
             {isChatOpen && activeRoom && (
                 <Modal onClose={() => setIsChatOpen(false)}>
-                    <ChatInterface setIsChatOpen={setIsChatOpen}/>
+                    <ChatInterface setIsChatOpen={setIsChatOpen} />
                 </Modal>
             )}
         </>

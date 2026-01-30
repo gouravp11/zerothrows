@@ -177,18 +177,6 @@ export const RoomProvider = ({ children }) => {
         }
     };
 
-    const fetchMessages = async () => {
-        try {
-            const res = await getRoomMessages(activeRoom._id);
-            const data = await res.json();
-            if (data.success && Array.isArray(data.messages)) {
-                setMessages(data.messages);
-            }
-        } catch (err) {
-            console.error("Failed to load messages:", err);
-        }
-    };
-
     const value = {
         rooms,
         myRoom,

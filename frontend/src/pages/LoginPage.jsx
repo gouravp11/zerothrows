@@ -3,7 +3,7 @@ import Button from "../components/Button";
 import { MockContext } from "../context/Mock";
 
 const LoginPage = () => {
-    const {users, handleLogin} = useContext(MockContext);
+    const { users, handleLogin } = useContext(MockContext);
     const [selectedUser, setSelectedUser] = useState("demo");
     const [loading, setLoading] = useState(false);
 
@@ -36,10 +36,7 @@ const LoginPage = () => {
                 ))}
             </select>
 
-            <Button
-                onClick={onLogin}
-                className="bg-indigo-600 hover:bg-indigo-700 cursor-pointer"
-            >
+            <Button onClick={onLogin} className="bg-indigo-600 hover:bg-indigo-700 cursor-pointer">
                 Sign in with Riot (Mock)
             </Button>
         </div>

@@ -3,8 +3,8 @@ import RoomCard from "../components/RoomCard";
 import { RoomContext } from "../context/Room";
 
 const JoinedRoom = ({ setIsChatOpen }) => {
-    const {joinedRoom} = useContext(RoomContext);
-    
+    const { joinedRoom } = useContext(RoomContext);
+
     return (
         <section>
             <h2 className="text-2xl font-semibold mb-2">Other Joined Room</h2>

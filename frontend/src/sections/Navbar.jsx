@@ -4,12 +4,12 @@ import ProfileIcon from "../components/ProfileIcon";
 import { MockContext } from "../context/Mock";
 
 const Navbar = () => {
-    const {currentUser, handleLogout} = useContext(MockContext);
+    const { currentUser, handleLogout } = useContext(MockContext);
 
     const onLogout = () => {
         handleLogout();
     };
-    
+
     return (
         <div className="flex items-center justify-between bg-white shadow-md px-6 py-4">
             <h1 className="text-2xl font-extrabold text-green-600">ZeroThrows</h1>

@@ -29,7 +29,7 @@ const CreateRoomForm = ({ setShowCreateForm }) => {
 
         const newRoom = await handleCreateRoom(roomData);
 
-        if(newRoom) {
+        if (newRoom) {
             setRoomName("");
             setRegion("NA");
             setMinRank("");

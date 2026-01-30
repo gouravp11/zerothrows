@@ -7,16 +7,13 @@ import { MockContext } from "./Mock";
 export const MessageContext = createContext(null);
 
 export const MessageProvider = ({ children }) => {
-    const MockContextValue = useContext(MockContext);
-    const { currentUser } = MockContextValue;
-    const RoomContextValue = useContext(RoomContext);
-    const { activeRoom } = RoomContextValue;
+    const { currentUser } = useContext(MockContext);
+    const { activeRoom } = useContext(RoomContext);
     const [messages, setMessages] = useState([]);
 
     const senderName = currentUser?.riotId?.gameName || "Unknown";
     const isOwner = currentUser?.puuid === activeRoom.createdBy?.puuid;
 
-    console.log("this is messages", messages);
     const fetchMessages = async () => {
         try {
             const res = await getRoomMessages(activeRoom._id);
@@ -35,7 +32,6 @@ export const MessageProvider = ({ children }) => {
         if (!msg.trim()) return;
 
         emitChatMessage(activeRoom._id, senderName, msg);
-        // setInput("");
     };
     const value = {
         messages,
