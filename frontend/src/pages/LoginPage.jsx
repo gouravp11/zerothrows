@@ -3,8 +3,7 @@ import Button from "../components/Button";
 import { MockContext } from "../context/Mock";
 
 const LoginPage = () => {
-    const MockContextValue = useContext(MockContext);
-    const {users, handleLogin} = MockContextValue;
+    const {users, handleLogin} = useContext(MockContext);
     const [selectedUser, setSelectedUser] = useState("demo");
     const [loading, setLoading] = useState(false);
 

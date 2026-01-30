@@ -1,20 +1,8 @@
 import Button from "../components/Button";
 import Modal from "../components/Modal";
 import CreateRoomForm from "../components/CreateRoomForm";
-import { emitChatMessage, emitJoinRoom } from "../sockets/room.emits";
-import { useContext } from "react";
-import { RoomContext } from "../context/Room";
-import { MockContext } from "../context/Mock";
-
-// fetchRooms
 
 const CreateRoom = ({ showCreateForm, setShowCreateForm }) => {
-    // const handleCreateRoom = (roomData) => {
-    //     setShowCreateForm(false);
-    //     // fetchRooms();
-    //     emitJoinRoom(roomData._id);
-    //     emitChatMessage(roomData._id, "System", `${currentUser.riotId.gameName} joined the room`);
-    // };
     return (
         <>
             <Button

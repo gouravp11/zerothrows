@@ -1,27 +1,15 @@
 import { useEffect, useContext, useState, useRef } from "react";
 import Button from "./Button";
-import { getRoomMessages } from "../api/room";
-import { emitChatMessage } from "../sockets/room.emits";
 import { listenChatMessage } from "../sockets/room.listeners";
 import {RoomContext} from "../context/Room";
-import { MockContext } from "../context/Mock";
 import { MessageContext } from "../context/Message";
-// onLeaveRoom, room
+
 const ChatInterface = ({ setIsChatOpen }) => {
-    // const MockContextValue = useContext(MockContext);
-    // const {currentUser} = MockContextValue;
-    const RoomContextValue = useContext(RoomContext);
-    const {activeRoom, handleLeaveRoom} = RoomContextValue;
-    const MessageContextValue = useContext(MessageContext);
-    const { messages, senderName, isOwner, fetchMessages, handleSendMessage, handleChatMessage} = MessageContextValue;
-    // const [messages, setMessages] = useState([]);
+    const {activeRoom, handleLeaveRoom} = useContext(RoomContext);
+    const { messages, senderName, isOwner, fetchMessages, handleSendMessage, handleChatMessage} = useContext(MessageContext);
+
     const [input, setInput] = useState("");
     const messagesEndRef = useRef(null);
-    // const currentUser = JSON.parse(localStorage.getItem("user"));
-    // const senderName = currentUser?.riotId?.gameName || "Unknown";
-    // const isOwner = currentUser?.puuid === activeRoom.createdBy?.puuid;
-
-    // console.log("This is active room", activeRoom);
 
     const onLeaveRoom = () => {
         handleLeaveRoom(activeRoom._id);
@@ -37,23 +25,7 @@ const ChatInterface = ({ setIsChatOpen }) => {
     }
 
     useEffect(() => {
-        // const fetchMessages = async () => {
-        //     try {
-        //         const res = await getRoomMessages(activeRoom._id);
-        //         const data = await res.json();
-        //         if (data.success && Array.isArray(data.messages)) {
-        //             setMessages(data.messages);
-        //         }
-        //     } catch (err) {
-        //         console.error("Failed to load messages:", err);
-        //     }
-        // };
-
         fetchMessages();
-
-        // const handleChatMessage = (msg) => {
-        //     setMessages((prev) => [...prev, msg]);
-        // };
 
         const stopListeningToChatMessages = listenChatMessage(onChatMessage);
         // listens to event "chatMessage" and returns clean up function for the same listener
@@ -65,13 +37,6 @@ const ChatInterface = ({ setIsChatOpen }) => {
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
-
-    // const handleSendMessage = () => {
-    //     if (!input.trim()) return;
-
-    //     emitChatMessage(activeRoom._id, senderName, input);
-    //     setInput("");
-    // };
 
     return (
         <div className="flex flex-col max-w-full h-[600px] max-h-[90vh] bg-white rounded-xl overflow-hidden">

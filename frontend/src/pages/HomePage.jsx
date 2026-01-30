@@ -5,97 +5,18 @@ import MyRoom from "../sections/MyRoom";
 import JoinedRoom from "../sections/JoinedRoom";
 import BrowseRooms from "../sections/BrowseRooms";
 import Chat from "../overlays/Chat";
-import { fetchAllRooms, joinRoom, leaveRoom } from "../api/room";
-import { emitChatMessage, emitJoinRoom, emitLeaveRoom } from "../sockets/room.emits";
+import { emitJoinRoom } from "../sockets/room.emits";
 import { listenRoomUpdates } from "../sockets/room.listeners";
 import { MockContext } from "../context/Mock";
 import { RoomContext } from "../context/Room";
 
 const HomePage = () => {
-    const MockContextValue = useContext(MockContext);
-    const {currentUser} = MockContextValue;
-
-    const RoomContextValue = useContext(RoomContext);
-    const {rooms, fetchRooms} = RoomContextValue;
-
-    // const [rooms, setRooms] = useState([]);
+    const {currentUser} = useContext(MockContext);
+    const {rooms, fetchRooms} = useContext(RoomContext);
+    
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [regionFilter, setRegionFilter] = useState("ALL");
     const [isChatOpen, setIsChatOpen] = useState(false);
-    // const [activeRoom, setActiveRoom] = useState(null);
-
-    // const handleJoinRoom = async (roomId) => {
-    //     try {
-    //         if (!currentUser) {
-    //             alert("You must be logged in to join a room.");
-    //             return;
-    //         }
-    //         const participant = {
-    //             gameName: currentUser.riotId.gameName,
-    //             tagLine: currentUser.tagLine,
-    //             puuid: currentUser.puuid
-    //         };
-    //         const res = await joinRoom(roomId, participant);
-    //         if (res.ok) {
-    //             const updatedRoom = await res.json();
-    //             // console.log("Joined room successfully:", updatedRoom);
-    //             await fetchRooms();
-    //             emitJoinRoom(roomId);
-    //             emitChatMessage(roomId, "System", `${currentUser.riotId.gameName} joined the room`);
-    //         } else {
-    //             const errorData = await res.json();
-    //             alert(errorData.error || "Failed to join room");
-    //         }
-    //     } catch (error) {
-    //         console.error("Error joining room:", error);
-    //     }
-    // };
-
-    // const handleLeaveRoom = async (roomId) => {
-    //     try {
-    //         const res = await leaveRoom(roomId, currentUser.puuid);
-    //         if (res.ok) {
-    //             setIsChatOpen(false);
-    //             await fetchRooms();
-    //             emitChatMessage(roomId, "System", `${currentUser.riotId.gameName} left the room`);
-    //             emitLeaveRoom(roomId);
-    //         } else {
-    //             const err = await res.json();
-    //             alert(err.error || "Failed to leave room");
-    //         }
-    //     } catch (err) {
-    //         console.error("Error leaving room:", err);
-    //     }
-    // };
-
-    // const handleGoChat = (roomId) => {  
-    //     const selectedRoom = rooms.find((r) => r._id === roomId);
-    //     setActiveRoom(selectedRoom);
-    //     setIsChatOpen(true);
-    // };
-
-    // const fetchRooms = async () => {
-    //     try {
-    //         if (!currentUser) {
-    //             console.error("User not logged in");
-    //             return [];
-    //         }
-
-    //         const res = await fetchAllRooms(currentUser.puuid);
-    //         if (res.ok) {
-    //             const data = await res.json();
-    //             setRooms(data);
-    //             return data;
-    //         } else {
-    //             const errorData = await res.json();
-    //             console.error(errorData.error || "Failed to fetch rooms");
-    //             return [];
-    //         }
-    //     } catch (error) {
-    //         console.error("Failed to fetch rooms:", error);
-    //         return [];
-    //     }
-    // };
 
     const fetchRoomsAndJoin = async () => {
         const rooms = await fetchRooms();
@@ -115,21 +36,6 @@ const HomePage = () => {
     const isInAnyRoom = rooms.some((room) =>
         room.participants?.some((p) => p.puuid === currentUser.puuid)
     );
-
-    // const myRoom = rooms.filter((room) => room.createdBy?.puuid === currentUser.puuid)[0];
-
-    // const joinedRoom = rooms.find(
-    //     (room) =>
-    //         room.createdBy?.puuid !== currentUser.puuid &&
-    //         room.participants?.some((p) => p.puuid === currentUser.puuid)
-    // );
-
-    // const otherRooms = rooms.filter(
-    //     (room) =>
-    //         room.createdBy?.puuid !== currentUser.puuid &&
-    //         room._id !== joinedRoom?._id &&
-    //         (regionFilter === "ALL" || room.region === regionFilter)
-    // );
 
     useEffect(() => {
         fetchRoomsAndJoin();

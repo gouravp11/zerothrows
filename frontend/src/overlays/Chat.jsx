@@ -3,10 +3,9 @@ import ChatInterface from "../components/ChatInterface";
 import { useContext } from "react";
 import { RoomContext } from "../context/Room";
 
-// handleLeaveRoom, activeRoom
 const Chat = ({ isChatOpen, setIsChatOpen }) => {
-    const RoomContextValue = useContext(RoomContext);
-    const {activeRoom} = RoomContextValue;
+    const {activeRoom} = useContext(RoomContext);
+
     return (
         <>
             {isChatOpen && activeRoom && (

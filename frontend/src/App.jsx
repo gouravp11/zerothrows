@@ -5,10 +5,8 @@ import { useContext } from "react";
 import { MockContext } from "./context/Mock";
 
 const App = () => {
-    const MockContextValue = useContext(MockContext);
-    console.log(MockContextValue)
-    const {isLoggedIn} = MockContextValue;
-    // const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("user"));
+    const {isLoggedIn}= useContext(MockContext);
+    
     return (
         <Routes key={isLoggedIn}>
             <Route

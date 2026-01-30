@@ -3,14 +3,10 @@ import Button from "./Button";
 import { listenLeaveRoomAll } from "../sockets/room.listeners";
 import { MockContext } from "../context/Mock";
 import { RoomContext } from "../context/Room";
-// currentUserPuuid, onGoChat, onDelete, onJoin, onLeave
-// new -> setIsChatOpen
+
 const RoomCard = ({ room, isOwnRoom, onForceClose, isInAnyRoom, setIsChatOpen }) => {
-    const MockContextValue = useContext(MockContext);
-    const { currentUser } = MockContextValue;
-    const RoomContextValue = useContext(RoomContext);
-    const { handleGoChat, handleLeaveRoom, handleJoinRoom, handleDeleteRoom, handleLeaveRoomAll } =
-        RoomContextValue;
+    const { currentUser } = useContext(MockContext);
+    const { handleGoChat, handleLeaveRoom, handleJoinRoom, handleDeleteRoom, handleLeaveRoomAll } = useContext(RoomContext);
     const isParticipant = room.participants?.some((p) => p.puuid === currentUser.puuid);
 
     const onGoChat = (room) => {

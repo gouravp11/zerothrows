@@ -1,11 +1,10 @@
 import { useContext } from "react";
 import RoomCard from "../components/RoomCard";
 import { RoomContext } from "../context/Room";
-// joinedRoom, handleLeaveRoom, isInAnyRoom, currentUser, handleGoChat
-// new -> setIsChatOpen
+
 const JoinedRoom = ({ setIsChatOpen }) => {
-    const RoomContextValue = useContext(RoomContext);
-    const {joinedRoom} = RoomContextValue;
+    const {joinedRoom} = useContext(RoomContext);
+    
     return (
         <section>
             <h2 className="text-2xl font-semibold mb-2">Other Joined Room</h2>

@@ -2,17 +2,14 @@ import { useContext } from "react";
 import RoomCard from "../components/RoomCard";
 import { RoomContext } from "../context/Room";
 import { MockContext } from "../context/Mock";
-// otherRooms, handleJoinRoom, currentUser, handleGoChat, setIsChatOpen
+
 const BrowseRooms = ({
     regionFilter,
     setRegionFilter,
     isInAnyRoom,
 }) => {
-    const RoomContextValue = useContext(RoomContext);
-    const {rooms, joinedRoom} = RoomContextValue;
-
-    const MockContextValue = useContext(MockContext);
-    const { currentUser } = MockContextValue;
+    const {rooms, joinedRoom} = useContext(RoomContext);
+    const { currentUser } = useContext(MockContext);
 
     const otherRooms = rooms.filter(
         (room) =>

@@ -1,8 +1,7 @@
 import { useContext, useState } from "react";
 import Button from "./Button";
-import { createRoom } from "../api/room";
 import { RoomContext } from "../context/Room";
-// onCreate
+
 const CreateRoomForm = ({ setShowCreateForm }) => {
     const [roomName, setRoomName] = useState("");
     const [region, setRegion] = useState("NA");
@@ -18,8 +17,6 @@ const CreateRoomForm = ({ setShowCreateForm }) => {
         e.preventDefault();
         setLoading(true);
 
-        // const currentUser = JSON.parse(localStorage.getItem("user"));
-
         const roomData = {
             roomName,
             region,
@@ -28,12 +25,6 @@ const CreateRoomForm = ({ setShowCreateForm }) => {
                 minRank: minRank || null,
                 minPeakRank: minPeakRank || null
             }
-            // ,
-            // createdBy: {
-            //     gameName: currentUser.riotId.gameName,
-            //     tagLine: currentUser.riotId.tagLine,
-            //     puuid: currentUser.puuid
-            // }
         };
 
         const newRoom = await handleCreateRoom(roomData);
@@ -49,27 +40,6 @@ const CreateRoomForm = ({ setShowCreateForm }) => {
         }
 
         setLoading(false);
-        // try {
-        //     const res = await createRoom(roomData);
-
-        //     if (res.ok) {
-        //         const savedRoom = await res.json();
-        //         // console.log("Room created:", savedRoom);
-        //         onCreate(savedRoom);
-        //         setRoomName("");
-        //         setRegion("NA");
-        //         setMinRank("");
-        //         setMinPeakRank("");
-        //         setDescription("");
-        //     } else {
-        //         const errorData = await res.json();
-        //         alert(errorData.error || "Failed to create room");
-        //     }
-        // } catch (error) {
-        //     console.error("Error creating room:", error);
-        // } finally {
-        //     setLoading(false);
-        // }
     };
 
     return (
