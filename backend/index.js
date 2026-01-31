@@ -38,7 +38,6 @@ app.get("/health", (req, res) => res.sendStatus(200)); // A route to keep backen
 // Minimal Socket.io connection
 io.on("connection", (socket) => {
     console.log("A user connected:", socket.id);
-    io.emit("roomUpdated");
 
     socket.on("joinRoom", (roomId) => {
         socket.join(roomId);
