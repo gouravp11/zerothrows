@@ -5,14 +5,25 @@ import MyRoom from "../sections/MyRoom";
 import JoinedRoom from "../sections/JoinedRoom";
 import BrowseRooms from "../sections/BrowseRooms";
 import Chat from "../overlays/Chat";
-import { emitJoinRoom } from "../sockets/room.emits";
-import { listenRoomUpdates } from "../sockets/room.listeners";
+import {
+    listenRoomCreated,
+    listenRoomDeleted,
+    listenRoomLeft,
+    listenRoomJoined
+} from "../sockets/room.listeners";
 import { MockContext } from "../context/Mock";
 import { RoomContext } from "../context/Room";
 
 const HomePage = () => {
     const { currentUser } = useContext(MockContext);
-    const { rooms, fetchRooms } = useContext(RoomContext);
+    const {
+        rooms,
+        fetchRooms,
+        handleRoomCreated,
+        handleRoomDeleted,
+        handleRoomJoined,
+        handleRoomLeft
+    } = useContext(RoomContext);
 
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [regionFilter, setRegionFilter] = useState("ALL");
@@ -22,12 +33,31 @@ const HomePage = () => {
         room.participants?.some((p) => p.puuid === currentUser.puuid)
     );
 
+    const onRoomCreated = (room) => {
+        handleRoomCreated(room);
+    };
+    const onRoomDeleted = (room) => {
+        handleRoomDeleted(room);
+    };
+    const onRoomJoined = (room) => {
+        handleRoomJoined(room);
+    };
+    const onRoomLeft = (room) => {
+        handleRoomLeft(room);
+    };
+
     useEffect(() => {
         fetchRooms();
-        const stopListenRoomUpdates = listenRoomUpdates(fetchRooms);
+        const stopListenRoomCreated = listenRoomCreated(onRoomCreated);
+        const stopListenRoomDeleted = listenRoomDeleted(onRoomDeleted);
+        const stopListenRoomJoined = listenRoomJoined(onRoomJoined);
+        const stopListenRoomLeft = listenRoomLeft(onRoomLeft);
 
         return () => {
-            stopListenRoomUpdates();
+            stopListenRoomCreated();
+            stopListenRoomDeleted();
+            stopListenRoomJoined();
+            stopListenRoomLeft();
             // runs when homepage unmounts, reloads etc (Basically focused out)
         };
     }, []);

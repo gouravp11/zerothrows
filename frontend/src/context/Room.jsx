@@ -29,29 +29,62 @@ export const RoomProvider = ({ children }) => {
                   room.participants?.some((p) => p.puuid === currentUser.puuid)
           )
         : null;
-    console.log("These are all Rooms", rooms);
-    console.log("This is my Room", myRoom);
-    console.log("This is joined Room", joinedRoom);
+
+    const handleRoomCreated = (room) => {
+        if (room) {
+            setRooms((prev) => [...prev, room]);
+        }
+    };
+    const handleRoomDeleted = (room) => {
+        if (room) {
+            setRooms((prev) => {
+                return prev.filter((r) => r._id != room._id);
+            });
+        }
+    };
+    const handleRoomJoined = (room) => {
+        if (room) {
+            setRooms((prev) => {
+                return prev.map((r) => {
+                    if (r._id == room._id) {
+                        return room;
+                    }
+                });
+            });
+        }
+    };
+    const handleRoomLeft = (room) => {
+        if (room) {
+            setRooms((prev) => {
+                return prev.map((r) => {
+                    if (r._id == room._id) {
+                        return room;
+                    }
+                });
+            });
+        }
+    };
 
     const fetchRooms = async () => {
         try {
             if (!currentUser) {
                 console.error("User not logged in");
-                return [];
+                return;
             }
 
             const res = await fetchAllRooms(currentUser.puuid);
-            if (res.ok) {
-                const data = await res.json();
-                const previouslyJoinedRoom = data.find((room) =>
-                    room.participants?.some((p) => p.puuid === currentUser?.puuid)
-                );
-                if (previouslyJoinedRoom) emitJoinRoom(previouslyJoinedRoom._id);
-                setRooms(data);
-            } else {
+            if (!res.ok) {
                 const errorData = await res.json();
                 console.error(errorData.error || "Failed to fetch rooms");
+                return;
             }
+
+            const data = await res.json();
+            const previouslyJoinedRoom = data.find((room) =>
+                room.participants?.some((p) => p.puuid === currentUser?.puuid)
+            );
+            if (previouslyJoinedRoom) emitJoinRoom(previouslyJoinedRoom._id);
+            setRooms(data);
         } catch (error) {
             console.error("Failed to fetch rooms:", error);
         }
@@ -60,25 +93,23 @@ export const RoomProvider = ({ children }) => {
     const handleJoinRoom = async (roomId) => {
         try {
             if (!currentUser) {
-                alert("You must be logged in to join a room.");
+                console.error("You must be logged in to join a room.");
                 return;
             }
+
             const participant = {
                 gameName: currentUser.riotId.gameName,
                 tagLine: currentUser.tagLine,
                 puuid: currentUser.puuid
             };
             const res = await joinRoom(roomId, participant);
-            if (res.ok) {
-                const updatedRoom = await res.json();
-                console.log("Joined room successfully:", updatedRoom);
-                await fetchRooms();
-                emitJoinRoom(roomId);
-                emitChatMessage(roomId, "System", `${currentUser.riotId.gameName} joined the room`);
-            } else {
+            if (!res.ok) {
                 const errorData = await res.json();
-                alert(errorData.error || "Failed to join room");
+                console.error(errorData.error || "Failed to join room");
+                return;
             }
+            emitJoinRoom(roomId);
+            emitChatMessage(roomId, "System", `${currentUser.riotId.gameName} joined the room`);
         } catch (error) {
             console.error("Error joining room:", error);
         }
@@ -86,16 +117,19 @@ export const RoomProvider = ({ children }) => {
 
     const handleLeaveRoom = async (roomId) => {
         try {
-            const res = await leaveRoom(roomId, currentUser.puuid);
-            if (res.ok) {
-                // setIsChatOpen(false);
-                await fetchRooms();
-                emitChatMessage(roomId, "System", `${currentUser.riotId.gameName} left the room`);
-                emitLeaveRoom(roomId);
-            } else {
-                const err = await res.json();
-                alert(err.error || "Failed to leave room");
+            if (!currentUser) {
+                console.error("You must be logged in to leave a room.");
+                return;
             }
+            const res = await leaveRoom(roomId, currentUser.puuid);
+            if (!res.ok) {
+                const err = await res.json();
+                console.error(err.error || "Failed to leave room");
+                return;
+            }
+
+            emitChatMessage(roomId, "System", `${currentUser.riotId.gameName} left the room`);
+            emitLeaveRoom(roomId);
         } catch (err) {
             console.error("Error leaving room:", err);
         }
@@ -123,14 +157,12 @@ export const RoomProvider = ({ children }) => {
             }
 
             const savedRoom = await res.json();
-
             emitJoinRoom(savedRoom._id);
             emitChatMessage(
                 savedRoom._id,
                 "System",
                 `${currentUser.riotId.gameName} joined the room`
             );
-
             return savedRoom;
         } catch (error) {
             console.error("Error creating room:", error);
@@ -149,12 +181,10 @@ export const RoomProvider = ({ children }) => {
             };
 
             const res = await deleteRoom(createdBy, roomId);
-            if (res.ok) {
-                // console.log("Room deleted:", roomId);
-                await fetchRooms();
-            } else {
+            if (!res.ok) {
                 const errorData = await res.json();
-                alert(errorData.error || "Failed to delete room");
+                console.error(errorData.error || "Failed to delete room");
+                return;
             }
         } catch (error) {
             console.error("Failed to delete room:", error);
@@ -165,6 +195,8 @@ export const RoomProvider = ({ children }) => {
         // joinedRoom won't exist in client's side if room is created by client itself
         if (roomId === joinedRoom?._id || roomId === myRoom?._id) {
             emitLeaveRoom(roomId);
+        } else {
+            console.error("Room deletion failed");
         }
     };
 
@@ -179,7 +211,11 @@ export const RoomProvider = ({ children }) => {
         handleLeaveRoom,
         handleCreateRoom,
         handleDeleteRoom,
-        handleLeaveRoomAll
+        handleLeaveRoomAll,
+        handleRoomCreated,
+        handleRoomDeleted,
+        handleRoomJoined,
+        handleRoomLeft
     };
     return <RoomContext.Provider value={value}>{children}</RoomContext.Provider>;
 };
