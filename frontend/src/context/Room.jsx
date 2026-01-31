@@ -14,11 +14,9 @@ export const RoomProvider = ({ children }) => {
     const { currentUser } = useContext(MockContext);
     const [rooms, setRooms] = useState([]);
     const [activeRoom, setActiveRoom] = useState({});
-    // const [regionFilter, setRegionFilter] = useState("ALL");
+
     const handleGoChat = (room) => {
-        // const selectedRoom = rooms.find((r) => r._id === roomId);
         setActiveRoom(room);
-        // setIsChatOpen(true);
     };
     const myRoom = currentUser
         ? rooms.filter((room) => room.createdBy?.puuid === currentUser.puuid)[0]
@@ -31,15 +29,9 @@ export const RoomProvider = ({ children }) => {
                   room.participants?.some((p) => p.puuid === currentUser.puuid)
           )
         : null;
+    console.log("These are all Rooms", rooms);
     console.log("This is my Room", myRoom);
     console.log("This is joined Room", joinedRoom);
-
-    // const otherRooms = rooms.filter(
-    //     (room) =>
-    //         room.createdBy?.puuid !== currentUser.puuid &&
-    //         room._id !== joinedRoom?._id &&
-    //         (regionFilter === "ALL" || room.region === regionFilter)
-    // );
 
     const fetchRooms = async () => {
         try {
@@ -51,17 +43,17 @@ export const RoomProvider = ({ children }) => {
             const res = await fetchAllRooms(currentUser.puuid);
             if (res.ok) {
                 const data = await res.json();
-                console.log(data);
+                const previouslyJoinedRoom = data.find((room) =>
+                    room.participants?.some((p) => p.puuid === currentUser?.puuid)
+                );
+                if (previouslyJoinedRoom) emitJoinRoom(previouslyJoinedRoom._id);
                 setRooms(data);
-                return data;
             } else {
                 const errorData = await res.json();
                 console.error(errorData.error || "Failed to fetch rooms");
-                return [];
             }
         } catch (error) {
             console.error("Failed to fetch rooms:", error);
-            return [];
         }
     };
 
@@ -119,7 +111,6 @@ export const RoomProvider = ({ children }) => {
                 ...newRoom,
                 createdBy: {
                     gameName: currentUser.riotId.gameName,
-                    tagLine: currentUser.riotId.tagLine,
                     puuid: currentUser.puuid
                 }
             };

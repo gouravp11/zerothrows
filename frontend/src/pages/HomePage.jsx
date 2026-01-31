@@ -18,27 +18,12 @@ const HomePage = () => {
     const [regionFilter, setRegionFilter] = useState("ALL");
     const [isChatOpen, setIsChatOpen] = useState(false);
 
-    const fetchRoomsAndJoin = async () => {
-        const rooms = await fetchRooms();
-        console.log(rooms);
-
-        if (!rooms.length) return;
-
-        const joinedRoom = rooms.find((room) =>
-            room.participants?.some((p) => p.puuid === currentUser?.puuid)
-        );
-
-        if (joinedRoom) {
-            emitJoinRoom(joinedRoom._id);
-        }
-    };
-
     const isInAnyRoom = rooms.some((room) =>
         room.participants?.some((p) => p.puuid === currentUser.puuid)
     );
 
     useEffect(() => {
-        fetchRoomsAndJoin();
+        fetchRooms();
         const stopListenRoomUpdates = listenRoomUpdates(fetchRooms);
 
         return () => {
